@@ -19,7 +19,7 @@ body {
 }
 
 #workstation {
-  --w: min(80vw, 64vh);
+  --w: min(92vw, 94vh);
   --u: calc(var(--w) / 100);
 
   /* Fine plastic grain, drawn by an SVG noise filter */
@@ -217,159 +217,14 @@ body {
 
 /* ================= COMPUTER CASE ================= */
 
-#computer {
-  position: relative;
-  z-index: 1;
-  width: calc(var(--u) * 112);
-  height: calc(var(--u) * 30);
-  margin-top: calc(var(--u) * -1.2);
-  border-radius: calc(var(--u) * 1.2);
-  background:
-    var(--grain),
-    linear-gradient(180deg, var(--plastic-hi) 0%, var(--plastic) 10%, var(--plastic) 70%, var(--plastic-mid) 100%);
-  box-shadow:
-    inset 0 calc(var(--u) * 0.35) calc(var(--u) * 0.2) rgba(255, 255, 255, 0.8),
-    inset calc(var(--u) * 0.4) 0 calc(var(--u) * 0.6) rgba(255, 255, 255, 0.35),
-    inset calc(var(--u) * -0.6) 0 calc(var(--u) * 1) rgba(110, 90, 55, 0.3),
-    inset 0 calc(var(--u) * -1) calc(var(--u) * 1.2) rgba(110, 90, 55, 0.45),
-    0 calc(var(--u) * 3) calc(var(--u) * 5) calc(var(--u) * -1) rgba(20, 35, 50, 0.5);
-}
 
-/* A moulded groove across the front */
-#case-seam {
-  position: absolute;
-  left: calc(var(--u) * 1);
-  right: calc(var(--u) * 1);
-  top: calc(var(--u) * 4.5);
-  height: calc(var(--u) * 0.35);
-  background: rgba(110, 90, 55, 0.35);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-#case-badge {
-  position: absolute;
-  left: calc(var(--u) * 4.5);
-  top: calc(var(--u) * 8);
-  width: calc(var(--u) * 5);
-  height: calc(var(--u) * 5);
-  border-radius: calc(var(--u) * 0.3);
-  background:
-    linear-gradient(135deg, #fbfaf6 0%, #e7e3d8 45%, #cfcabd 55%, #ece9e0 100%);
-  box-shadow:
-    inset 0 0 0 calc(var(--u) * 0.15) rgba(120, 110, 90, 0.4),
-    0 calc(var(--u) * 0.2) calc(var(--u) * 0.3) rgba(80, 60, 30, 0.35);
-}
-
-#case-vents {
-  position: absolute;
-  left: calc(var(--u) * 5.5);
-  bottom: calc(var(--u) * 3.5);
-  width: calc(var(--u) * 34);
-  height: calc(var(--u) * 11);
-  display: flex;
-  justify-content: space-between;
-}
-
-#case-vents span {
-  width: calc(var(--u) * 0.9);
-  border-radius: calc(var(--u) * 0.45);
-  background: linear-gradient(90deg, #2e271b 0%, #4a4030 60%, #6e6149 100%);
-  box-shadow:
-    inset 0 calc(var(--u) * 0.6) calc(var(--u) * 0.5) rgba(0, 0, 0, 0.6),
-    calc(var(--u) * 0.15) 0 0 rgba(255, 255, 255, 0.6);
-}
-
-#drive-bays {
-  position: absolute;
-  right: calc(var(--u) * 4.5);
-  top: calc(var(--u) * 7.5);
-  width: calc(var(--u) * 42);
-  display: flex;
-  flex-direction: column;
-  gap: calc(var(--u) * 1.8);
-}
-
-/* Each bay sits in a shallow recess */
-.drive {
-  position: relative;
-  height: calc(var(--u) * 6.6);
-  border-radius: calc(var(--u) * 0.4);
-  background:
-    var(--grain),
-    linear-gradient(180deg, #ece3cc 0%, #ddd2b4 100%);
-  box-shadow:
-    0 0 0 calc(var(--u) * 0.35) #c4b690,
-    0 0 0 calc(var(--u) * 0.55) rgba(90, 70, 40, 0.35),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8),
-    inset 0 calc(var(--u) * -0.3) calc(var(--u) * 0.4) rgba(110, 90, 55, 0.3);
-}
-
-.floppy .slot {
-  position: absolute;
-  left: 12%;
-  top: 38%;
-  width: 62%;
-  height: 20%;
-  border-radius: calc(var(--u) * 0.25);
-  background: linear-gradient(180deg, #14110b 0%, #3b3325 100%);
-  box-shadow:
-    inset 0 calc(var(--u) * 0.3) calc(var(--u) * 0.3) rgba(0, 0, 0, 0.8),
-    0 1px 0 rgba(255, 255, 255, 0.7);
-}
-
-.drive-led {
-  position: absolute;
-  left: 5%;
-  top: 42%;
-  width: calc(var(--u) * 1.1);
-  height: calc(var(--u) * 0.6);
-  border-radius: calc(var(--u) * 0.15);
-  background: #4a5a3a;
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
-}
-
-.eject {
-  position: absolute;
-  right: 6%;
-  top: 60%;
-  width: calc(var(--u) * 3.2);
-  height: calc(var(--u) * 1.4);
-  border-radius: calc(var(--u) * 0.2);
-  background: linear-gradient(180deg, #f0e8d2 0%, #cfc2a0 100%);
-  box-shadow:
-    0 0 0 calc(var(--u) * 0.12) #ad9e79,
-    0 calc(var(--u) * 0.2) calc(var(--u) * 0.2) rgba(80, 60, 30, 0.4);
-}
-
-#case-power {
-  position: absolute;
-  right: calc(var(--u) * 4.5);
-  bottom: calc(var(--u) * 3.4);
-  display: flex;
-  gap: calc(var(--u) * 1.4);
-}
-
-.case-led {
-  width: calc(var(--u) * 1.4);
-  height: calc(var(--u) * 0.7);
-  border-radius: calc(var(--u) * 0.2);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.case-led.green { background: #4a5a3a; }
-.case-led.amber { background: #6a5a36; }
-
-#monitor.is-on ~ #computer .case-led.green {
-  background: #8cff66;
-  box-shadow: 0 0 calc(var(--u) * 0.8) rgba(140, 255, 102, 0.8);
-}
 
 /* ================= FLOOR ================= */
 
 #floor-shadow {
-  width: calc(var(--u) * 130);
-  height: calc(var(--u) * 7);
-  margin-top: calc(var(--u) * -3);
+  width: calc(var(--u) * 90);
+  height: calc(var(--u) * 6);
+  margin-top: calc(var(--u) * -3.5);
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(25, 40, 55, 0.5) 0%, rgba(25, 40, 55, 0.18) 45%, transparent 70%);
 }
