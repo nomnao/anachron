@@ -1,10 +1,201 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
 body {
   margin: 0;
-  background: #008080;
-  color: #ffffff;
+  background: radial-gradient(ellipse at 50% 40%, #a9c3d2 0%, #86a6b9 55%, #6d8ea3 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
   font-family: monospace;
 }
 
-#screen {
-  padding: 16px;
+/* Every size below is a fraction of --w (the monitor width),
+   so the whole machine scales together on any screen. */
+#workstation {
+  --w: min(80vw, 64vh);
+  --beige: #e6dcc3;
+  --beige-light: #f1e9d5;
+  --beige-dark: #c9bc9c;
+  --beige-shadow: #a99b7a;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ---------- Monitor ---------- */
+
+#monitor {
+  width: var(--w);
+  background: var(--beige);
+  border-radius: calc(var(--w) * 0.012);
+  padding: calc(var(--w) * 0.045) calc(var(--w) * 0.05) 0;
+  box-shadow:
+    inset calc(var(--w) * 0.004) calc(var(--w) * 0.004) 0 var(--beige-light),
+    inset calc(var(--w) * -0.004) calc(var(--w) * -0.004) 0 var(--beige-dark),
+    0 calc(var(--w) * 0.02) calc(var(--w) * 0.05) rgba(30, 50, 65, 0.35);
+  position: relative;
+  z-index: 2;
+}
+
+/* The recessed frame around the glass */
+#bezel {
+  background: var(--beige-dark);
+  padding: calc(var(--w) * 0.018);
+  border-radius: calc(var(--w) * 0.01);
+  box-shadow:
+    inset calc(var(--w) * 0.006) calc(var(--w) * 0.006) calc(var(--w) * 0.008) var(--beige-shadow),
+    inset calc(var(--w) * -0.003) calc(var(--w) * -0.003) 0 var(--beige-light);
+}
+
+#crt-screen {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: calc(var(--w) * 0.03) / calc(var(--w) * 0.035);
+  background:
+    radial-gradient(ellipse at 72% 14%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 12%, transparent 26%),
+    radial-gradient(ellipse at 50% 50%, #26413f 0%, #1a2e2d 70%, #111f1f 100%);
+  box-shadow:
+    inset 0 0 calc(var(--w) * 0.04) rgba(0, 0, 0, 0.7);
+  color: #c0c0c0;
+  padding: calc(var(--w) * 0.03);
+  overflow: hidden;
+}
+
+/* The strip under the screen with the LED and power button */
+#monitor-chin {
+  height: calc(var(--w) * 0.07);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--w) * 0.018);
+  padding-right: calc(var(--w) * 0.02);
+}
+
+#power-led {
+  width: calc(var(--w) * 0.022);
+  height: calc(var(--w) * 0.009);
+  border-radius: 1px;
+  background: #5b6a52;
+}
+
+#monitor.is-on #power-led {
+  background: #7dff5a;
+  box-shadow: 0 0 calc(var(--w) * 0.01) #7dff5a;
+}
+
+#power-button {
+  width: calc(var(--w) * 0.03);
+  height: calc(var(--w) * 0.016);
+  padding: 0;
+  background: var(--beige);
+  border: 1px solid var(--beige-shadow);
+  border-radius: 1px;
+  box-shadow: inset 1px 1px 0 var(--beige-light);
+  cursor: pointer;
+  position: relative;
+}
+
+/* An invisible, larger tap area so the button is easy to hit on phones */
+#power-button::after {
+  content: '';
+  position: absolute;
+  inset: -14px;
+}
+
+#power-button:active {
+  box-shadow: inset 1px 1px 2px var(--beige-shadow);
+}
+
+/* ---------- Stand ---------- */
+
+#monitor-neck {
+  width: calc(var(--w) * 0.2);
+  height: calc(var(--w) * 0.03);
+  background: linear-gradient(#b8aa88, #cfc3a5);
+  z-index: 1;
+}
+
+#monitor-base {
+  width: calc(var(--w) * 0.6);
+  height: calc(var(--w) * 0.06);
+  margin-top: calc(var(--w) * -0.012);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 30%, #d8cba9 0%, #c2b38e 60%, #a6966f 100%);
+  box-shadow: 0 calc(var(--w) * 0.008) calc(var(--w) * 0.01) rgba(60, 50, 30, 0.35);
+  z-index: 1;
+}
+
+/* ---------- Computer case ---------- */
+
+#computer {
+  width: calc(var(--w) * 1.12);
+  height: calc(var(--w) * 0.3);
+  margin-top: calc(var(--w) * -0.02);
+  background: linear-gradient(var(--beige-light) 0%, var(--beige) 6%, var(--beige) 90%, var(--beige-dark) 100%);
+  border-radius: calc(var(--w) * 0.006);
+  box-shadow: 0 calc(var(--w) * 0.03) calc(var(--w) * 0.05) rgba(30, 50, 65, 0.35);
+  position: relative;
+}
+
+#case-badge {
+  position: absolute;
+  left: 4%;
+  top: 14%;
+  width: calc(var(--w) * 0.045);
+  height: calc(var(--w) * 0.045);
+  background: #eeeae0;
+  border: 1px solid var(--beige-dark);
+}
+
+#case-vents {
+  position: absolute;
+  left: 5%;
+  bottom: 12%;
+  width: 30%;
+  height: 35%;
+  background: repeating-linear-gradient(
+    90deg,
+    #6f6450 0,
+    #6f6450 calc(var(--w) * 0.006),
+    var(--beige) calc(var(--w) * 0.006),
+    var(--beige) calc(var(--w) * 0.018)
+  );
+}
+
+#drive-bays {
+  position: absolute;
+  right: 4%;
+  top: 12%;
+  width: 38%;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--w) * 0.02);
+}
+
+.drive {
+  height: calc(var(--w) * 0.06);
+  background: var(--beige);
+  border: 1px solid var(--beige-shadow);
+  box-shadow:
+    inset 1px 1px 0 var(--beige-light),
+    inset -1px -1px 0 var(--beige-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.floppy .slot {
+  width: 70%;
+  height: 22%;
+  background: #7d7156;
+  border-radius: 1px;
 }
