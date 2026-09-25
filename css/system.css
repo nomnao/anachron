@@ -9,7 +9,8 @@ body {
 
 body {
   margin: 0;
-  background: radial-gradient(ellipse at 50% 40%, #a9c3d2 0%, #86a6b9 55%, #6d8ea3 100%);
+  background:
+    radial-gradient(ellipse at 50% 38%, #a9c3d2 0%, #88a8bb 50%, #5f8196 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -17,94 +18,160 @@ body {
   font-family: monospace;
 }
 
-/* Every size below is a fraction of --w (the monitor width),
-   so the whole machine scales together on any screen. */
 #workstation {
   --w: min(80vw, 64vh);
-  --beige: #e6dcc3;
-  --beige-light: #f1e9d5;
-  --beige-dark: #c9bc9c;
-  --beige-shadow: #a99b7a;
+  --u: calc(var(--w) / 100);
 
+  /* Fine plastic grain, drawn by an SVG noise filter */
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.35  0 0 0 0 0.29  0 0 0 0 0.18  0 0 0 0.22 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+
+  --plastic-hi: #f3ecda;
+  --plastic: #e4dabe;
+  --plastic-mid: #d6caaa;
+  --plastic-lo: #bfb08c;
+  --plastic-deep: #8f7f5c;
+
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* ---------- Monitor ---------- */
+/* ================= MONITOR ================= */
 
 #monitor {
-  width: var(--w);
-  background: var(--beige);
-  border-radius: calc(var(--w) * 0.012);
-  padding: calc(var(--w) * 0.045) calc(var(--w) * 0.05) 0;
-  box-shadow:
-    inset calc(var(--w) * 0.004) calc(var(--w) * 0.004) 0 var(--beige-light),
-    inset calc(var(--w) * -0.004) calc(var(--w) * -0.004) 0 var(--beige-dark),
-    0 calc(var(--w) * 0.02) calc(var(--w) * 0.05) rgba(30, 50, 65, 0.35);
   position: relative;
-  z-index: 2;
+  z-index: 3;
+  width: var(--w);
+  padding: calc(var(--u) * 4.6) calc(var(--u) * 5.2) 0;
+  border-radius: calc(var(--u) * 2.4);
+  background:
+    var(--grain),
+    radial-gradient(ellipse 130% 95% at 28% 0%, var(--plastic-hi) 0%, var(--plastic) 42%, var(--plastic-mid) 85%, #cbbe9c 100%);
+  box-shadow:
+    inset 0 calc(var(--u) * 0.35) calc(var(--u) * 0.2) rgba(255, 255, 255, 0.75),
+    inset calc(var(--u) * 0.4) 0 calc(var(--u) * 0.6) rgba(255, 255, 255, 0.35),
+    inset calc(var(--u) * -0.6) 0 calc(var(--u) * 1) rgba(110, 90, 55, 0.28),
+    inset 0 calc(var(--u) * -0.8) calc(var(--u) * 1.2) rgba(110, 90, 55, 0.4),
+    0 calc(var(--u) * 0.6) calc(var(--u) * 1) rgba(30, 40, 50, 0.25),
+    0 calc(var(--u) * 3.5) calc(var(--u) * 6) calc(var(--u) * -1) rgba(20, 35, 50, 0.45);
 }
 
-/* The recessed frame around the glass */
+/* The sloped, recessed frame around the tube */
 #bezel {
-  background: var(--beige-dark);
-  padding: calc(var(--w) * 0.018);
-  border-radius: calc(var(--w) * 0.01);
+  position: relative;
+  padding: calc(var(--u) * 2.2);
+  border-radius: calc(var(--u) * 1.6);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #a8987a 0%, #c4b692 28%, #d7cbab 70%, #eae1c8 100%);
   box-shadow:
-    inset calc(var(--w) * 0.006) calc(var(--w) * 0.006) calc(var(--w) * 0.008) var(--beige-shadow),
-    inset calc(var(--w) * -0.003) calc(var(--w) * -0.003) 0 var(--beige-light);
+    inset 0 calc(var(--u) * 0.9) calc(var(--u) * 1.4) rgba(70, 55, 30, 0.55),
+    inset calc(var(--u) * 0.6) 0 calc(var(--u) * 1) rgba(70, 55, 30, 0.25),
+    inset calc(var(--u) * -0.4) 0 calc(var(--u) * 0.8) rgba(255, 255, 255, 0.25),
+    inset 0 calc(var(--u) * -0.3) calc(var(--u) * 0.3) rgba(255, 255, 255, 0.6),
+    0 calc(var(--u) * 0.15) 0 rgba(255, 255, 255, 0.5);
 }
 
 #crt-screen {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: calc(var(--w) * 0.03) / calc(var(--w) * 0.035);
+  border-radius: calc(var(--u) * 4) / calc(var(--u) * 4.6);
   background:
-    radial-gradient(ellipse at 72% 14%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 12%, transparent 26%),
-    radial-gradient(ellipse at 50% 50%, #26413f 0%, #1a2e2d 70%, #111f1f 100%);
+    radial-gradient(ellipse 75% 70% at 50% 48%, #2b4543 0%, #1e3331 55%, #122120 85%, #0a1413 100%);
   box-shadow:
-    inset 0 0 calc(var(--w) * 0.04) rgba(0, 0, 0, 0.7);
-  color: #c0c0c0;
-  padding: calc(var(--w) * 0.03);
+    inset 0 0 calc(var(--u) * 5) rgba(0, 0, 0, 0.8),
+    inset 0 calc(var(--u) * 1.5) calc(var(--u) * 2.5) rgba(0, 0, 0, 0.6),
+    0 0 0 calc(var(--u) * 0.25) #0c1515,
+    0 calc(var(--u) * 0.3) calc(var(--u) * 0.6) rgba(0, 0, 0, 0.5);
+  color: #c9d1c6;
+  padding: calc(var(--u) * 3.4);
   overflow: hidden;
+  font-size: calc(var(--u) * 2.4);
+  line-height: 1.5;
 }
 
-/* The strip under the screen with the LED and power button */
+/* Reflections on the curved glass, layered on top of the screen */
+#glass {
+  position: absolute;
+  inset: calc(var(--u) * 2.2);
+  border-radius: calc(var(--u) * 4) / calc(var(--u) * 4.6);
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 34% 20% at 70% 15%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 55%, transparent 100%),
+    linear-gradient(115deg, transparent 8%, rgba(255, 255, 255, 0.07) 14%, rgba(255, 255, 255, 0.02) 30%, transparent 36%),
+    radial-gradient(ellipse 110% 95% at 50% 50%, transparent 62%, rgba(255, 255, 255, 0.05) 80%, transparent 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, transparent 6%);
+  box-shadow:
+    inset 0 calc(var(--u) * 0.2) calc(var(--u) * 0.3) rgba(255, 255, 255, 0.12);
+}
+
+.boot-line {
+  white-space: pre;
+  min-height: 1.5em;
+  text-shadow: 0 0 calc(var(--u) * 0.4) rgba(200, 220, 200, 0.35);
+}
+
+/* ---------- Chin: knobs, LED, power button ---------- */
+
 #monitor-chin {
-  height: calc(var(--w) * 0.07);
+  height: calc(var(--u) * 7.5);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  gap: calc(var(--w) * 0.018);
-  padding-right: calc(var(--w) * 0.02);
+  gap: calc(var(--u) * 1.6);
+  padding: 0 calc(var(--u) * 1.5) 0 calc(var(--u) * 58);
+}
+
+.knob {
+  width: calc(var(--u) * 3.6);
+  height: calc(var(--u) * 1.3);
+  border-radius: calc(var(--u) * 0.5);
+  background:
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.18) 0, rgba(0, 0, 0, 0.18) 1px, transparent 1px, transparent calc(var(--u) * 0.35)),
+    linear-gradient(180deg, #e9e0c8 0%, #c9bb97 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 calc(var(--u) * 0.15) calc(var(--u) * 0.2) rgba(80, 60, 30, 0.45);
+}
+
+#chin-spacer {
+  flex: 1;
 }
 
 #power-led {
-  width: calc(var(--w) * 0.022);
-  height: calc(var(--w) * 0.009);
-  border-radius: 1px;
-  background: #5b6a52;
+  width: calc(var(--u) * 2.2);
+  height: calc(var(--u) * 0.9);
+  border-radius: calc(var(--u) * 0.2);
+  background: linear-gradient(180deg, #3f4a38 0%, #5d6b53 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(0, 0, 0, 0.5),
+    0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 #monitor.is-on #power-led {
-  background: #7dff5a;
-  box-shadow: 0 0 calc(var(--w) * 0.01) #7dff5a;
+  background: radial-gradient(ellipse at 50% 40%, #d9ffc9 0%, #7dff5a 45%, #3fbf2a 100%);
+  box-shadow:
+    0 0 calc(var(--u) * 1.2) rgba(125, 255, 90, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 #power-button {
-  width: calc(var(--w) * 0.03);
-  height: calc(var(--w) * 0.016);
-  padding: 0;
-  background: var(--beige);
-  border: 1px solid var(--beige-shadow);
-  border-radius: 1px;
-  box-shadow: inset 1px 1px 0 var(--beige-light);
-  cursor: pointer;
   position: relative;
+  width: calc(var(--u) * 3.2);
+  height: calc(var(--u) * 1.8);
+  padding: 0;
+  border: none;
+  border-radius: calc(var(--u) * 0.3);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #f1e9d4 0%, #d8cca9 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 0 0 calc(var(--u) * 0.15) #b3a47f,
+    0 calc(var(--u) * 0.25) calc(var(--u) * 0.35) rgba(80, 60, 30, 0.5);
+  cursor: pointer;
 }
 
-/* An invisible, larger tap area so the button is easy to hit on phones */
 #power-button::after {
   content: '';
   position: absolute;
@@ -112,102 +179,197 @@ body {
 }
 
 #power-button:active {
-  box-shadow: inset 1px 1px 2px var(--beige-shadow);
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 1px 2px rgba(80, 60, 30, 0.5),
+    0 0 0 calc(var(--u) * 0.15) #b3a47f;
 }
 
-/* ---------- Stand ---------- */
+/* ================= STAND ================= */
 
 #monitor-neck {
-  width: calc(var(--w) * 0.2);
-  height: calc(var(--w) * 0.03);
-  background: linear-gradient(#b8aa88, #cfc3a5);
-  z-index: 1;
+  position: relative;
+  z-index: 2;
+  width: calc(var(--u) * 22);
+  height: calc(var(--u) * 3.5);
+  background:
+    var(--grain),
+    linear-gradient(180deg, rgba(40, 30, 10, 0.45) 0%, transparent 45%),
+    linear-gradient(90deg, #9f906c 0%, #cbbd9a 22%, #d9ceb0 40%, #c2b490 70%, #968762 100%);
 }
 
 #monitor-base {
-  width: calc(var(--w) * 0.6);
-  height: calc(var(--w) * 0.06);
-  margin-top: calc(var(--w) * -0.012);
+  position: relative;
+  z-index: 2;
+  width: calc(var(--u) * 60);
+  height: calc(var(--u) * 6.4);
+  margin-top: calc(var(--u) * -1.6);
   border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 30%, #d8cba9 0%, #c2b38e 60%, #a6966f 100%);
-  box-shadow: 0 calc(var(--w) * 0.008) calc(var(--w) * 0.01) rgba(60, 50, 30, 0.35);
-  z-index: 1;
+  background:
+    var(--grain),
+    radial-gradient(ellipse 60% 55% at 42% 30%, #ece2c8 0%, #d3c6a3 45%, #b8a881 80%, #a09068 100%);
+  box-shadow:
+    inset 0 calc(var(--u) * -0.5) calc(var(--u) * 0.6) rgba(90, 70, 40, 0.35),
+    0 calc(var(--u) * 1) 0 #9a8a63,
+    0 calc(var(--u) * 1.1) calc(var(--u) * 0.2) #85764f,
+    0 calc(var(--u) * 2) calc(var(--u) * 1.6) rgba(40, 32, 15, 0.45);
 }
 
-/* ---------- Computer case ---------- */
+/* ================= COMPUTER CASE ================= */
 
 #computer {
-  width: calc(var(--w) * 1.12);
-  height: calc(var(--w) * 0.3);
-  margin-top: calc(var(--w) * -0.02);
-  background: linear-gradient(var(--beige-light) 0%, var(--beige) 6%, var(--beige) 90%, var(--beige-dark) 100%);
-  border-radius: calc(var(--w) * 0.006);
-  box-shadow: 0 calc(var(--w) * 0.03) calc(var(--w) * 0.05) rgba(30, 50, 65, 0.35);
   position: relative;
+  z-index: 1;
+  width: calc(var(--u) * 112);
+  height: calc(var(--u) * 30);
+  margin-top: calc(var(--u) * -1.2);
+  border-radius: calc(var(--u) * 1.2);
+  background:
+    var(--grain),
+    linear-gradient(180deg, var(--plastic-hi) 0%, var(--plastic) 10%, var(--plastic) 70%, var(--plastic-mid) 100%);
+  box-shadow:
+    inset 0 calc(var(--u) * 0.35) calc(var(--u) * 0.2) rgba(255, 255, 255, 0.8),
+    inset calc(var(--u) * 0.4) 0 calc(var(--u) * 0.6) rgba(255, 255, 255, 0.35),
+    inset calc(var(--u) * -0.6) 0 calc(var(--u) * 1) rgba(110, 90, 55, 0.3),
+    inset 0 calc(var(--u) * -1) calc(var(--u) * 1.2) rgba(110, 90, 55, 0.45),
+    0 calc(var(--u) * 3) calc(var(--u) * 5) calc(var(--u) * -1) rgba(20, 35, 50, 0.5);
+}
+
+/* A moulded groove across the front */
+#case-seam {
+  position: absolute;
+  left: calc(var(--u) * 1);
+  right: calc(var(--u) * 1);
+  top: calc(var(--u) * 4.5);
+  height: calc(var(--u) * 0.35);
+  background: rgba(110, 90, 55, 0.35);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 #case-badge {
   position: absolute;
-  left: 4%;
-  top: 14%;
-  width: calc(var(--w) * 0.045);
-  height: calc(var(--w) * 0.045);
-  background: #eeeae0;
-  border: 1px solid var(--beige-dark);
+  left: calc(var(--u) * 4.5);
+  top: calc(var(--u) * 8);
+  width: calc(var(--u) * 5);
+  height: calc(var(--u) * 5);
+  border-radius: calc(var(--u) * 0.3);
+  background:
+    linear-gradient(135deg, #fbfaf6 0%, #e7e3d8 45%, #cfcabd 55%, #ece9e0 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--u) * 0.15) rgba(120, 110, 90, 0.4),
+    0 calc(var(--u) * 0.2) calc(var(--u) * 0.3) rgba(80, 60, 30, 0.35);
 }
 
 #case-vents {
   position: absolute;
-  left: 5%;
-  bottom: 12%;
-  width: 30%;
-  height: 35%;
-  background: repeating-linear-gradient(
-    90deg,
-    #6f6450 0,
-    #6f6450 calc(var(--w) * 0.006),
-    var(--beige) calc(var(--w) * 0.006),
-    var(--beige) calc(var(--w) * 0.018)
-  );
+  left: calc(var(--u) * 5.5);
+  bottom: calc(var(--u) * 3.5);
+  width: calc(var(--u) * 34);
+  height: calc(var(--u) * 11);
+  display: flex;
+  justify-content: space-between;
+}
+
+#case-vents span {
+  width: calc(var(--u) * 0.9);
+  border-radius: calc(var(--u) * 0.45);
+  background: linear-gradient(90deg, #2e271b 0%, #4a4030 60%, #6e6149 100%);
+  box-shadow:
+    inset 0 calc(var(--u) * 0.6) calc(var(--u) * 0.5) rgba(0, 0, 0, 0.6),
+    calc(var(--u) * 0.15) 0 0 rgba(255, 255, 255, 0.6);
 }
 
 #drive-bays {
   position: absolute;
-  right: 4%;
-  top: 12%;
-  width: 38%;
+  right: calc(var(--u) * 4.5);
+  top: calc(var(--u) * 7.5);
+  width: calc(var(--u) * 42);
   display: flex;
   flex-direction: column;
-  gap: calc(var(--w) * 0.02);
+  gap: calc(var(--u) * 1.8);
 }
 
+/* Each bay sits in a shallow recess */
 .drive {
-  height: calc(var(--w) * 0.06);
-  background: var(--beige);
-  border: 1px solid var(--beige-shadow);
+  position: relative;
+  height: calc(var(--u) * 6.6);
+  border-radius: calc(var(--u) * 0.4);
+  background:
+    var(--grain),
+    linear-gradient(180deg, #ece3cc 0%, #ddd2b4 100%);
   box-shadow:
-    inset 1px 1px 0 var(--beige-light),
-    inset -1px -1px 0 var(--beige-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    0 0 0 calc(var(--u) * 0.35) #c4b690,
+    0 0 0 calc(var(--u) * 0.55) rgba(90, 70, 40, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 calc(var(--u) * -0.3) calc(var(--u) * 0.4) rgba(110, 90, 55, 0.3);
 }
 
 .floppy .slot {
-  width: 70%;
-  height: 22%;
-  background: #7d7156;
-  border-radius: 1px;
+  position: absolute;
+  left: 12%;
+  top: 38%;
+  width: 62%;
+  height: 20%;
+  border-radius: calc(var(--u) * 0.25);
+  background: linear-gradient(180deg, #14110b 0%, #3b3325 100%);
+  box-shadow:
+    inset 0 calc(var(--u) * 0.3) calc(var(--u) * 0.3) rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
-/* ---------- Boot text ---------- */
-
-#crt-screen {
-  font-size: calc(var(--w) * 0.024);
-  line-height: 1.5;
+.drive-led {
+  position: absolute;
+  left: 5%;
+  top: 42%;
+  width: calc(var(--u) * 1.1);
+  height: calc(var(--u) * 0.6);
+  border-radius: calc(var(--u) * 0.15);
+  background: #4a5a3a;
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5);
 }
 
-.boot-line {
-  white-space: pre;
-  min-height: 1.5em;
+.eject {
+  position: absolute;
+  right: 6%;
+  top: 60%;
+  width: calc(var(--u) * 3.2);
+  height: calc(var(--u) * 1.4);
+  border-radius: calc(var(--u) * 0.2);
+  background: linear-gradient(180deg, #f0e8d2 0%, #cfc2a0 100%);
+  box-shadow:
+    0 0 0 calc(var(--u) * 0.12) #ad9e79,
+    0 calc(var(--u) * 0.2) calc(var(--u) * 0.2) rgba(80, 60, 30, 0.4);
+}
+
+#case-power {
+  position: absolute;
+  right: calc(var(--u) * 4.5);
+  bottom: calc(var(--u) * 3.4);
+  display: flex;
+  gap: calc(var(--u) * 1.4);
+}
+
+.case-led {
+  width: calc(var(--u) * 1.4);
+  height: calc(var(--u) * 0.7);
+  border-radius: calc(var(--u) * 0.2);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.case-led.green { background: #4a5a3a; }
+.case-led.amber { background: #6a5a36; }
+
+#monitor.is-on ~ #computer .case-led.green {
+  background: #8cff66;
+  box-shadow: 0 0 calc(var(--u) * 0.8) rgba(140, 255, 102, 0.8);
+}
+
+/* ================= FLOOR ================= */
+
+#floor-shadow {
+  width: calc(var(--u) * 130);
+  height: calc(var(--u) * 7);
+  margin-top: calc(var(--u) * -3);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(25, 40, 55, 0.5) 0%, rgba(25, 40, 55, 0.18) 45%, transparent 70%);
 }
