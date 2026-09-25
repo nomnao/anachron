@@ -58,8 +58,39 @@ async function boot() {
   }
 
   await wait(800);
+  crtScreen.textContent = '';
+  await wait(500);
+
+  showDesktop();
   systemState = 'desktop';
   console.log('System state:', systemState);
+}
+
+// Builds the desktop inside the screen.
+function showDesktop() {
+  crtScreen.innerHTML = `
+    <div id="desktop">
+      <div id="taskbar">
+        <button id="start-button">
+          <span class="logo"><span></span><span></span><span></span><span></span></span>
+          Start
+        </button>
+        <div id="clock"></div>
+      </div>
+    </div>
+  `;
+
+  updateClock();
+  setInterval(updateClock, 1000);
+}
+
+// Shows the real current time, e.g. "4:17 PM".
+function updateClock() {
+  const clock = document.querySelector('#clock');
+  clock.textContent = new Date().toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  });
 }
 
 powerButton.addEventListener('click', () => {
