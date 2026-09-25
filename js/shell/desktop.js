@@ -5,7 +5,8 @@ import {
   initWindowManager, openWindow, hasWindow, restoreWindow,
   setWindowTitle, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
-import { listFiles, onFilesChanged } from '../system/fs.js';
+import { listFiles, deleteFile, onFilesChanged } from '../system/fs.js';
+import { showConfirmDialog } from './dialogs.js';
 
 const DOUBLE_CLICK_MS = 450;
 
@@ -57,10 +58,25 @@ function createIcons(desktop) {
   renderFileIcons();
   onFilesChanged(renderFileIcons);
 
-  // Clicking empty desktop clears the selection
+  // Pressing anywhere that isn't an icon (the empty desktop,
+  // a window, the taskbar) clears the selection
   desktop.addEventListener('pointerdown', (event) => {
-    if (event.target === desktop || event.target === iconArea) {
+    if (!event.target.closest('.desktop-icon')) {
       selectIcon(null);
+    }
+  });
+
+  // Delete (or Backspace, since Mac laptops have no Delete key)
+  // deletes the selected file, unless you are typing somewhere
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (event.target.closest('input, textarea')) return;
+    if (desktop.querySelector('.dialog-overlay')) return;
+
+    const selected = desktop.querySelector('.desktop-icon.is-selected');
+    if (selected?.dataset.fileName) {
+      event.preventDefault();
+      confirmDelete(selected.dataset.fileName);
     }
   });
 }
@@ -81,10 +97,81 @@ function createIcon(image, label, onOpen) {
 
 function renderFileIcons() {
   const notepad = APPS.find((app) => app.id === 'notepad');
-  const icons = listFiles().map((file) =>
-    createIcon(TEXT_FILE_ICON, file.name, () => launchApp(notepad, { fileName: file.name })),
-  );
+
+  const icons = listFiles().map((file) => {
+    const open = () => launchApp(notepad, { fileName: file.name });
+    const icon = createIcon(TEXT_FILE_ICON, file.name, open);
+    icon.dataset.fileName = file.name;
+
+    // Right-click: a small menu to open or delete the file
+    icon.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      selectIcon(icon);
+      showContextMenu(event, [
+        { label: 'Open', action: open },
+        { label: 'Delete', action: () => confirmDelete(file.name) },
+      ]);
+    });
+
+    return icon;
+  });
+
   document.querySelector('#file-icons').replaceChildren(...icons);
+}
+
+async function confirmDelete(name) {
+  const desktop = document.querySelector('#desktop');
+  const confirmed = await showConfirmDialog(desktop, {
+    title: 'Confirm File Delete',
+    message: `Are you sure you want to delete '${name}'?`,
+    confirmLabel: 'Yes',
+    cancelLabel: 'No',
+  });
+
+  if (confirmed) deleteFile(name);
+}
+
+// ---------- Right-click menu ----------
+
+// Shows a list of { label, action } where the pointer is.
+// Choosing one, or pressing anywhere else, closes it.
+function showContextMenu(event, items) {
+  const desktop = document.querySelector('#desktop');
+  desktop.querySelector('.context-menu')?.remove();
+
+  const menu = document.createElement('div');
+  menu.className = 'menu-items context-menu';
+
+  for (const item of items) {
+    const button = document.createElement('button');
+    button.textContent = item.label;
+    button.addEventListener('click', () => {
+      close();
+      item.action();
+    });
+    menu.append(button);
+  }
+
+  desktop.append(menu);
+
+  // Open at the pointer, but keep the whole menu on screen
+  const area = desktop.getBoundingClientRect();
+  const x = Math.min(event.clientX - area.left, area.width - menu.offsetWidth);
+  const y = Math.min(event.clientY - area.top, area.height - menu.offsetHeight);
+  menu.style.left = `${x}px`;
+  menu.style.top = `${y}px`;
+
+  function onPointerDown(downEvent) {
+    if (!menu.contains(downEvent.target)) close();
+  }
+
+  function close() {
+    menu.remove();
+    document.removeEventListener('pointerdown', onPointerDown, true);
+  }
+
+  // "true" = hear about the press before anything else does
+  document.addEventListener('pointerdown', onPointerDown, true);
 }
 
 // We detect double-clicks ourselves, so it works the same

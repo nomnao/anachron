@@ -541,9 +541,32 @@
     inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
 }
 
+/* The focused button gets a dotted box inside, like the real thing */
+.push-button:focus-visible {
+  outline: var(--px) dotted #000000;
+  outline-offset: calc(var(--px) * -4);
+}
+
 .push-button:active {
   box-shadow:
     inset var(--px) var(--px) 0 #000000,
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff,
     inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #808080;
+}
+
+/* Dialogs that belong to the whole desktop (not one window)
+   sit above every window and the taskbar */
+#desktop > .dialog-overlay {
+  z-index: 20000;
+}
+
+/* ================= RIGHT-CLICK MENU ================= */
+
+/* Looks like a drop-down menu (.menu-items), but appears
+   wherever you right-click */
+.context-menu {
+  display: flex;
+  flex-direction: column;
+  z-index: 20000;
+  min-width: calc(var(--px) * 90);
 }

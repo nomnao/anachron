@@ -38,6 +38,16 @@ export function writeFile(name, content) {
   }
 
   saveFiles();
+  notify();
+}
+
+export function deleteFile(name) {
+  files = files.filter((file) => file.name !== name);
+  saveFiles();
+  notify();
+}
+
+function notify() {
   for (const listener of listeners) listener(listFiles());
 }
 
