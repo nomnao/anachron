@@ -1,0 +1,1 @@
+console.log('ANACHRON SYSTEM: main.js loaded');

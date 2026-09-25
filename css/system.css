@@ -1,0 +1,10 @@
+body {
+  margin: 0;
+  background: #008080;
+  color: #ffffff;
+  font-family: monospace;
+}
+
+#screen {
+  padding: 16px;
+}
