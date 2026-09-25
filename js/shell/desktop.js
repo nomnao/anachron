@@ -1,7 +1,7 @@
 // The desktop: icons, taskbar and clock.
 
 import { APPS } from '../app.js';
-import { initWindowManager, openWindow } from '../system/wm.js';
+import { initWindowManager, openWindow, onWindowsChanged, taskbarClick } from '../system/wm.js';
 
 const DOUBLE_CLICK_MS = 450;
 
@@ -14,6 +14,7 @@ export function showDesktop(screen) {
           <span class="logo"><span></span><span></span><span></span><span></span></span>
           Start
         </button>
+        <div id="taskbar-buttons"></div>
         <div id="clock"></div>
       </div>
     </div>
@@ -22,6 +23,10 @@ export function showDesktop(screen) {
   const desktop = screen.querySelector('#desktop');
   initWindowManager(desktop);
   createIcons(desktop);
+
+  // Redraw the taskbar buttons whenever a window opens, closes,
+  // gets focus, or is minimized
+  onWindowsChanged(renderTaskbarButtons);
 
   updateClock();
   setInterval(updateClock, 1000);
@@ -91,6 +96,27 @@ function launchApp(app) {
       </div>
     `,
   });
+}
+
+// ---------- Taskbar buttons ----------
+
+// One button per open window. The window manager hands us the list;
+// we simply draw it again from scratch each time.
+function renderTaskbarButtons(windowList) {
+  const area = document.querySelector('#taskbar-buttons');
+  area.innerHTML = '';
+
+  for (const win of windowList) {
+    const button = document.createElement('button');
+    button.className = 'taskbar-button';
+    button.classList.toggle('is-pressed', win.active);
+    button.innerHTML = `
+      <img src="${win.icon}" alt="">
+      <span class="taskbar-button-text">${win.title}</span>
+    `;
+    button.addEventListener('click', () => taskbarClick(win.id));
+    area.append(button);
+  }
 }
 
 // ---------- Clock ----------
