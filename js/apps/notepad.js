@@ -3,7 +3,8 @@
 // file opens it here again.
 
 import { setUpMenuBar } from '../shell/menus.js';
-import { fileExists, readFile, writeFile } from '../system/fs.js';
+import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
+import { readFile, writeFile } from '../system/fs.js';
 
 // context comes from the desktop:
 //   fileName - the file to open, or null for a new, untitled one
@@ -72,7 +73,7 @@ function runCommand(command, notepad) {
   }
 
   if (command === 'save-as') {
-    showSaveDialog(notepad);
+    saveAs(notepad);
     return;
   }
 
@@ -102,93 +103,33 @@ function updateTitle(notepad) {
 // a new one asks for a name first.
 function save(notepad) {
   if (notepad.fileName) {
-    writeFile(notepad.fileName, notepad.text.value);
+    writeAndCheck(notepad, notepad.fileName);
   } else {
-    showSaveDialog(notepad);
+    saveAs(notepad);
   }
 }
 
-// The "Save As" box. It sits over the Notepad window until
-// you save or cancel.
-function showSaveDialog(notepad) {
-  if (notepad.root.querySelector('.dialog-overlay')) return;
+async function saveAs(notepad) {
+  const name = await showSaveAsDialog(notepad.root, {
+    fileName: notepad.fileName ?? 'Untitled.txt',
+    extension: '.txt',
+  });
 
-  const overlay = document.createElement('div');
-  overlay.className = 'dialog-overlay';
-  overlay.innerHTML = `
-    <div class="dialog" role="dialog" aria-label="Save As">
-      <div class="dialog-title">Save As</div>
-      <div class="dialog-body">
-        <label class="dialog-field">
-          File name:
-          <input class="dialog-input sunken-panel" type="text" maxlength="40" spellcheck="false">
-        </label>
-        <p class="dialog-message"></p>
-        <div class="dialog-buttons">
-          <button class="push-button" data-choice="save">Save</button>
-          <button class="push-button" data-choice="cancel">Cancel</button>
-        </div>
-      </div>
-    </div>
-  `;
-  notepad.root.append(overlay);
-
-  const input = overlay.querySelector('.dialog-input');
-  const message = overlay.querySelector('.dialog-message');
-  input.value = notepad.fileName ?? 'Untitled.txt';
-  input.focus();
-  input.select();
-
-  // The name we already warned about. Pressing Save again with
-  // the same name means "yes, replace it".
-  let warnedName = null;
-
-  function trySave() {
-    const name = toFileName(input.value);
-
-    if (!name) {
-      message.textContent = 'Please type a file name.';
-      input.focus();
-      return;
-    }
-
-    if (fileExists(name) && name !== notepad.fileName && name !== warnedName) {
-      message.textContent = `${name} already exists. Press Save again to replace it.`;
-      warnedName = name;
-      input.focus();
-      return;
-    }
-
-    writeFile(name, notepad.text.value);
+  if (name) {
     notepad.fileName = name;
     updateTitle(notepad);
-    close();
+    writeAndCheck(notepad, name);
   }
-
-  function close() {
-    overlay.remove();
-    notepad.text.focus();
-  }
-
-  overlay.querySelector('[data-choice="save"]').addEventListener('click', trySave);
-  overlay.querySelector('[data-choice="cancel"]').addEventListener('click', close);
-
-  input.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') trySave();
-    if (event.key === 'Escape') close();
-  });
-
-  // Typing a different name clears the warning
-  input.addEventListener('input', () => {
-    message.textContent = '';
-    warnedName = null;
-  });
+  notepad.text.focus();
 }
 
-// Tidies what was typed into a file name: trims spaces and adds
-// ".txt" when there is no extension. Returns '' if nothing is left.
-function toFileName(typed) {
-  const name = typed.trim();
-  if (!name) return '';
-  return name.includes('.') ? name : `${name}.txt`;
+// Saves, and says so if the browser had no room to keep the file.
+function writeAndCheck(notepad, name) {
+  if (!writeFile(name, notepad.text.value, 'text')) {
+    showConfirmDialog(notepad.root, {
+      title: 'Notepad',
+      message: `There is no room to store ${name}. It will be lost when this page is closed.`,
+      cancelLabel: null,
+    });
+  }
 }

@@ -39,7 +39,11 @@ export function showDesktop(screen) {
 
 // ---------- Icons ----------
 
-const TEXT_FILE_ICON = 'assets/icons/text-file.svg';
+// What each type of file looks like, and which app opens it
+const FILE_TYPES = {
+  text:  { icon: 'assets/icons/text-file.svg',  appId: 'notepad' },
+  image: { icon: 'assets/icons/image-file.svg', appId: 'paint' },
+};
 
 function createIcons(desktop) {
   const iconArea = desktop.querySelector('#desktop-icons');
@@ -96,11 +100,11 @@ function createIcon(image, label, onOpen) {
 }
 
 function renderFileIcons() {
-  const notepad = APPS.find((app) => app.id === 'notepad');
-
   const icons = listFiles().map((file) => {
-    const open = () => launchApp(notepad, { fileName: file.name });
-    const icon = createIcon(TEXT_FILE_ICON, file.name, open);
+    const type = FILE_TYPES[file.type] ?? FILE_TYPES.text;
+    const app = APPS.find((a) => a.id === type.appId);
+    const open = () => launchApp(app, { fileName: file.name });
+    const icon = createIcon(type.icon, file.name, open);
     icon.dataset.fileName = file.name;
 
     // Right-click: a small menu to open or delete the file

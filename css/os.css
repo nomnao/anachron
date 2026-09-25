@@ -570,3 +570,161 @@
   z-index: 20000;
   min-width: calc(var(--px) * 90);
 }
+
+/* ================= PAINT ================= */
+
+.paint {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+.paint-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: calc(var(--px) * 3);
+}
+
+/* ----- Toolbox on the left ----- */
+
+.paint-toolbox {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 6);
+}
+
+.paint-tools {
+  display: grid;
+  grid-template-columns: repeat(2, calc(var(--px) * 22));
+  grid-auto-rows: calc(var(--px) * 22);
+}
+
+/* Raised grey button, like the title buttons */
+.tool-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #ffffff,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
+}
+
+.tool-button svg {
+  width: calc(var(--px) * 16);
+  height: calc(var(--px) * 16);
+}
+
+/* The chosen tool looks pushed in, with the same checkerboard
+   as the active taskbar button */
+.tool-button.is-selected {
+  background:
+    repeating-conic-gradient(#ffffff 0 25%, #c0c0c0 0 50%)
+    0 0 / calc(var(--px) * 2) calc(var(--px) * 2);
+  box-shadow:
+    inset var(--px) var(--px) 0 #000000,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #808080;
+}
+
+/* Brush sizes: a sunken box with one line per size */
+.paint-sizes {
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--px) * 3);
+  background: #c0c0c0;
+}
+
+.size-button {
+  display: flex;
+  align-items: center;
+  height: calc(var(--px) * 12);
+  padding: 0 calc(var(--px) * 4);
+  border: none;
+  background: none;
+}
+
+.size-button span {
+  flex: 1;
+  background: #000000;
+}
+
+.size-button.is-selected {
+  background: #000080;
+}
+
+.size-button.is-selected span {
+  background: #ffffff;
+}
+
+/* ----- The picture ----- */
+
+/* Dark grey area around the picture, scrolling if the window is small */
+.paint-canvas-area {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: calc(var(--px) * 4);
+  background: #808080;
+  box-shadow:
+    inset var(--px) var(--px) 0 #404040,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+/* One picture pixel = one virtual pixel, drawn as sharp squares */
+.paint-canvas {
+  display: block;
+  width: calc(var(--px) * 360);
+  height: calc(var(--px) * 220);
+  background: #ffffff;
+  image-rendering: pixelated;
+  cursor: crosshair;
+  touch-action: none;
+}
+
+/* ----- Colour palette at the bottom ----- */
+
+.paint-palette {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+  padding-top: calc(var(--px) * 3);
+}
+
+/* Shows the colour you are drawing with */
+.current-color {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--px) * 27);
+  height: calc(var(--px) * 27);
+  background: #c0c0c0;
+}
+
+.current-color span {
+  width: calc(var(--px) * 15);
+  height: calc(var(--px) * 15);
+  box-shadow: 0 0 0 var(--px) #000000;
+}
+
+.palette-colors {
+  display: grid;
+  grid-template-columns: repeat(14, calc(var(--px) * 13));
+  grid-template-rows: repeat(2, calc(var(--px) * 13));
+  gap: var(--px);
+}
+
+.palette-color {
+  padding: 0;
+  border: none;
+  box-shadow:
+    inset var(--px) var(--px) 0 #808080,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
