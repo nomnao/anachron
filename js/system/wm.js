@@ -10,7 +10,6 @@ const DOUBLE_CLICK_MS = 450;
 // window id -> { id, title, icon, x, y, width, height, z, minimized, maximized, el }
 const windows = new Map();
 let activeId = null;
-let topZ = 0;
 let desktop = null;
 
 // Functions that want to hear about any change (the taskbar is one)
@@ -89,9 +88,14 @@ export function focusWindow(id) {
   const win = windows.get(id);
   if (!win || win.minimized) return;
 
-  topZ += 1;
-  win.z = topZ;
-  win.el.style.zIndex = topZ;
+  // Put this window on top, then renumber every window 1, 2, 3...
+  // so z-index never climbs past the taskbar's
+  win.z = Infinity;
+  const stack = [...windows.values()].sort((a, b) => a.z - b.z);
+  stack.forEach((other, index) => {
+    other.z = index + 1;
+    other.el.style.zIndex = other.z;
+  });
   activeId = id;
 
   for (const other of windows.values()) {
