@@ -68,6 +68,10 @@ export function openWindow({ id, title, icon, width, height, content }) {
   focusWindow(id);
 }
 
+export function hasWindow(id) {
+  return windows.has(id);
+}
+
 export function closeWindow(id) {
   const win = windows.get(id);
   if (!win) return;
@@ -79,6 +83,16 @@ export function closeWindow(id) {
     activeId = null;
     focusTopWindow();
   }
+  notify();
+}
+
+// Changes the text in a window's title bar and taskbar button.
+export function setWindowTitle(id, title) {
+  const win = windows.get(id);
+  if (!win) return;
+
+  win.title = title;
+  win.el.querySelector('.title-text').textContent = title;
   notify();
 }
 
@@ -183,15 +197,27 @@ function createWindowElement(win, content) {
   el.innerHTML = `
     <div class="title-bar">
       <img class="title-icon" src="${win.icon}" alt="">
-      <span class="title-text">${win.title}</span>
+      <span class="title-text"></span>
       <div class="title-buttons">
         <button class="title-button" data-action="minimize" aria-label="Minimize"><span class="glyph-min"></span></button>
         <button class="title-button" data-action="maximize" aria-label="Maximize"><span class="glyph-max"></span></button>
         <button class="title-button" data-action="close" aria-label="Close"><span class="glyph-close"></span></button>
       </div>
     </div>
-    <div class="window-body">${content}</div>
+    <div class="window-body"></div>
   `;
+
+  // Titles can contain file names people typed, so they are
+  // set as plain text, never as HTML
+  el.querySelector('.title-text').textContent = win.title;
+
+  // Content can be plain HTML, or an element an app built itself
+  const body = el.querySelector('.window-body');
+  if (typeof content === 'string') {
+    body.innerHTML = content;
+  } else {
+    body.append(content);
+  }
 
   // Clicking anywhere on a window brings it to the front
   el.addEventListener('pointerdown', () => focusWindow(win.id));

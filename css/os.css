@@ -29,20 +29,31 @@
   -webkit-user-select: none;
 }
 
-#desktop button {
+/* :where() gives this rule zero specificity, so it is only a default:
+   any button rule below (e.g. a highlighted menu) can override it */
+:where(#desktop) button {
   font: inherit;
   color: inherit;
 }
 
 /* ================= DESKTOP ICONS ================= */
 
+/* Icons fill a column top to bottom, then start a new column
+   to the right, stopping just above the taskbar */
 #desktop-icons {
   position: absolute;
   top: calc(var(--px) * 8);
+  bottom: calc(var(--px) * 36);
   left: calc(var(--px) * 6);
   display: grid;
-  grid-auto-rows: calc(var(--px) * 70);
-  grid-template-columns: calc(var(--px) * 76);
+  grid-auto-flow: column;
+  grid-template-rows: repeat(auto-fill, calc(var(--px) * 70));
+  grid-auto-columns: calc(var(--px) * 76);
+}
+
+/* The saved files' icons sit in the same grid as the apps */
+#file-icons {
+  display: contents;
 }
 
 .desktop-icon {
@@ -217,10 +228,18 @@
   display: none;
 }
 
+/* Everything below the title bar. Each app decides what goes in it. */
 .window-body {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   margin-top: calc(var(--px) * 2);
   overflow: hidden;
+}
+
+/* White area with a sunken edge: dark top-left, light bottom-right */
+.sunken-panel {
   background: #ffffff;
   box-shadow:
     inset var(--px) var(--px) 0 #808080,
@@ -231,7 +250,7 @@
 
 /* Temporary content for apps we haven't built yet */
 .placeholder {
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -248,6 +267,87 @@
 
 .placeholder p {
   margin: 0;
+}
+
+/* ================= MENU BARS ================= */
+
+.menu-bar {
+  display: flex;
+  margin-bottom: calc(var(--px) * 2);
+}
+
+.menu {
+  position: relative;
+}
+
+.menu-title {
+  padding: calc(var(--px) * 2) calc(var(--px) * 6);
+  border: none;
+  background: none;
+}
+
+.menu.is-open .menu-title {
+  background: #000080;
+  color: #ffffff;
+}
+
+/* The drop-down list: a raised grey box, hidden until its menu opens */
+.menu-items {
+  display: none;
+  position: absolute;
+  z-index: 1;
+  top: 100%;
+  left: 0;
+  min-width: calc(var(--px) * 120);
+  padding: calc(var(--px) * 3);
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #dfdfdf,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #ffffff;
+}
+
+.menu.is-open .menu-items {
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-items button {
+  padding: calc(var(--px) * 3) calc(var(--px) * 16);
+  border: none;
+  background: none;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.menu-items button:hover {
+  background: #000080;
+  color: #ffffff;
+}
+
+/* ================= NOTEPAD ================= */
+
+.notepad {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.notepad-text {
+  flex: 1;
+  min-height: 0;
+  resize: none;
+  border: none;
+  outline: none;
+  padding: calc(var(--px) * 4);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: calc(var(--px) * 12);
+  color: #000000;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* ================= TASKBAR ================= */
@@ -356,4 +456,94 @@
   box-shadow:
     inset var(--px) var(--px) 0 #808080,
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+/* ================= DIALOGS ================= */
+
+/* Covers the app so nothing behind the dialog can be clicked */
+.dialog-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialog {
+  width: calc(var(--px) * 220);
+  max-width: 100%;
+  padding: calc(var(--px) * 3);
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #dfdfdf,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #ffffff;
+}
+
+.dialog-title {
+  height: calc(var(--px) * 18);
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--px) * 4);
+  background: #000080;
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 6);
+  padding: calc(var(--px) * 8);
+}
+
+.dialog-field {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 6);
+  white-space: nowrap;
+}
+
+.dialog-input {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--px) * 20);
+  padding: 0 calc(var(--px) * 4);
+  border: none;
+  outline: none;
+  font: inherit;
+  color: #000000;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.dialog-message {
+  min-height: 2.4em;
+  margin: 0;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--px) * 6);
+}
+
+/* A standard raised grey button, pushed in while pressed */
+.push-button {
+  min-width: calc(var(--px) * 64);
+  height: calc(var(--px) * 22);
+  border: none;
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #ffffff,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
+}
+
+.push-button:active {
+  box-shadow:
+    inset var(--px) var(--px) 0 #000000,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #808080;
 }

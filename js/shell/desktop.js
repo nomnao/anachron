@@ -1,7 +1,11 @@
 // The desktop: icons, taskbar and clock.
 
 import { APPS } from '../app.js';
-import { initWindowManager, openWindow, onWindowsChanged, taskbarClick } from '../system/wm.js';
+import {
+  initWindowManager, openWindow, hasWindow, restoreWindow,
+  setWindowTitle, onWindowsChanged, taskbarClick,
+} from '../system/wm.js';
+import { listFiles, onFilesChanged } from '../system/fs.js';
 
 const DOUBLE_CLICK_MS = 450;
 
@@ -34,19 +38,24 @@ export function showDesktop(screen) {
 
 // ---------- Icons ----------
 
+const TEXT_FILE_ICON = 'assets/icons/text-file.svg';
+
 function createIcons(desktop) {
   const iconArea = desktop.querySelector('#desktop-icons');
 
   for (const app of APPS) {
-    const icon = document.createElement('button');
-    icon.className = 'desktop-icon';
-    icon.innerHTML = `
-      <img src="${app.icon}" alt="">
-      <span class="icon-label">${app.title}</span>
-    `;
-    icon.addEventListener('click', () => handleIconClick(icon, app));
-    iconArea.append(icon);
+    iconArea.append(createIcon(app.icon, app.title, () => launchApp(app)));
   }
+
+  // Saved files come after the apps. They live in their own box
+  // (display: contents, so they still line up in the same grid)
+  // so we can redraw just them whenever a file is saved.
+  const fileIcons = document.createElement('div');
+  fileIcons.id = 'file-icons';
+  iconArea.append(fileIcons);
+
+  renderFileIcons();
+  onFilesChanged(renderFileIcons);
 
   // Clicking empty desktop clears the selection
   desktop.addEventListener('pointerdown', (event) => {
@@ -56,12 +65,34 @@ function createIcons(desktop) {
   });
 }
 
+// Builds one icon. onOpen runs when it is double-clicked.
+function createIcon(image, label, onOpen) {
+  const icon = document.createElement('button');
+  icon.className = 'desktop-icon';
+  icon.innerHTML = `
+    <img src="${image}" alt="">
+    <span class="icon-label"></span>
+  `;
+  // File names are typed by people, so the label is plain text, never HTML
+  icon.querySelector('.icon-label').textContent = label;
+  icon.addEventListener('click', () => handleIconClick(icon, onOpen));
+  return icon;
+}
+
+function renderFileIcons() {
+  const notepad = APPS.find((app) => app.id === 'notepad');
+  const icons = listFiles().map((file) =>
+    createIcon(TEXT_FILE_ICON, file.name, () => launchApp(notepad, { fileName: file.name })),
+  );
+  document.querySelector('#file-icons').replaceChildren(...icons);
+}
+
 // We detect double-clicks ourselves, so it works the same
 // with a mouse and with a finger on a phone.
 let lastClickedIcon = null;
 let lastClickTime = 0;
 
-function handleIconClick(icon, app) {
+function handleIconClick(icon, onOpen) {
   const now = Date.now();
   const isDoubleClick = icon === lastClickedIcon && now - lastClickTime < DOUBLE_CLICK_MS;
 
@@ -72,7 +103,7 @@ function handleIconClick(icon, app) {
 
   if (isDoubleClick) {
     lastClickedIcon = null;
-    launchApp(app);
+    onOpen();
   }
 }
 
@@ -82,19 +113,46 @@ function selectIcon(icon) {
   }
 }
 
-function launchApp(app) {
-  openWindow({
-    id: app.id,
-    title: app.title,
-    icon: app.icon,
-    width: app.width,
-    height: app.height,
-    content: `
-      <div class="placeholder">
+// Apps that have been built load their own module and draw
+// their own content. The rest show a placeholder for now.
+// options.fileName opens that file in the app.
+async function launchApp(app, options = {}) {
+  // Each file gets its own window; opening it again just
+  // brings that window back to the front
+  const id = options.fileName ? `${app.id}:${options.fileName}` : app.id;
+  if (hasWindow(id)) {
+    restoreWindow(id);
+    return;
+  }
+
+  // What the app gets to work with. An app can call setTitle
+  // while it starts up, before its window exists; we keep that
+  // title and open the window with it.
+  let title = app.title;
+  const context = {
+    fileName: options.fileName ?? null,
+    setTitle(newTitle) {
+      title = newTitle;
+      setWindowTitle(id, newTitle);
+    },
+  };
+
+  const content = app.load
+    ? (await app.load()).createApp(context)
+    : `
+      <div class="placeholder sunken-panel">
         <img src="${app.icon}" alt="">
         <p>${app.title} will be installed in a later phase.</p>
       </div>
-    `,
+    `;
+
+  openWindow({
+    id,
+    title,
+    icon: app.icon,
+    width: app.width,
+    height: app.height,
+    content,
   });
 }
 
@@ -112,8 +170,9 @@ function renderTaskbarButtons(windowList) {
     button.classList.toggle('is-pressed', win.active);
     button.innerHTML = `
       <img src="${win.icon}" alt="">
-      <span class="taskbar-button-text">${win.title}</span>
+      <span class="taskbar-button-text"></span>
     `;
+    button.querySelector('.taskbar-button-text').textContent = win.title;
     button.addEventListener('click', () => taskbarClick(win.id));
     area.append(button);
   }
