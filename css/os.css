@@ -728,3 +728,93 @@
     inset var(--px) var(--px) 0 #808080,
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
 }
+
+/* ================= START MENU ================= */
+
+/* The Start button looks pushed in while the menu is open */
+#start-button.is-pressed {
+  box-shadow:
+    inset var(--px) var(--px) 0 #000000,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #808080;
+}
+
+/* Sits just above the Start button, over every window */
+#start-menu {
+  position: absolute;
+  z-index: 15000;
+  left: calc(var(--px) * 2);
+  bottom: calc(var(--px) * 26);
+  display: flex;
+  padding: calc(var(--px) * 3);
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #dfdfdf,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #ffffff;
+}
+
+/* display: flex above would otherwise beat the hidden attribute */
+#start-menu[hidden] {
+  display: none;
+}
+
+/* The tall strip on the left, with the name reading bottom to top */
+.start-banner {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  width: calc(var(--px) * 22);
+  padding-bottom: calc(var(--px) * 6);
+  background: linear-gradient(to top, #000080, #3a6ea5);
+}
+
+.start-banner span {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  align-self: center;
+  font-size: calc(var(--px) * 15);
+  font-weight: bold;
+  letter-spacing: calc(var(--px) * 1);
+  color: #c0c0c0;
+}
+
+.start-banner b {
+  color: #ffffff;
+}
+
+.start-items {
+  display: flex;
+  flex-direction: column;
+  min-width: calc(var(--px) * 150);
+}
+
+.start-item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 8);
+  height: calc(var(--px) * 30);
+  padding: 0 calc(var(--px) * 12) 0 calc(var(--px) * 6);
+  border: none;
+  background: none;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.start-item img {
+  width: calc(var(--px) * 24);
+  height: calc(var(--px) * 24);
+}
+
+.start-item:hover {
+  background: #000080;
+  color: #ffffff;
+}
+
+/* A grooved line between the apps and Shut Down */
+.start-separator {
+  margin: calc(var(--px) * 2) calc(var(--px) * 2);
+  border-top: var(--px) solid #808080;
+  border-bottom: var(--px) solid #ffffff;
+}

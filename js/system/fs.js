@@ -13,8 +13,10 @@ let files = loadFiles().map((file) => ({ type: 'text', ...file }));
 // Functions that want to hear when files change (the desktop is one)
 const listeners = [];
 
+// Returns a function that stops listening.
 export function onFilesChanged(listener) {
   listeners.push(listener);
+  return () => listeners.splice(listeners.indexOf(listener), 1);
 }
 
 export function listFiles() {

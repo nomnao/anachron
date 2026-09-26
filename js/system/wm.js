@@ -15,8 +15,13 @@ let desktop = null;
 // Functions that want to hear about any change (the taskbar is one)
 const listeners = [];
 
+// Called on every boot. Forgets any windows and listeners
+// left over from before a shut down, so each boot starts clean.
 export function initWindowManager(desktopElement) {
   desktop = desktopElement;
+  windows.clear();
+  activeId = null;
+  listeners.length = 0;
 }
 
 // ---------- Telling others what changed ----------

@@ -1,4 +1,5 @@
-// The boot sequence: prints the start-up text, then clears the screen.
+// Starting up and shutting down: the text the screen shows
+// before the desktop appears and after it goes away.
 
 // Each line of the boot sequence.
 // If a line has a "check", the label appears first,
@@ -54,4 +55,18 @@ export async function runBoot(screen) {
   await wait(800);
   screen.textContent = '';
   await wait(500);
+}
+
+// Shows a short goodbye, then the classic message. The computer
+// stays on this screen until the power button is pressed.
+export async function runShutdown(screen) {
+  screen.textContent = '';
+  printLine(screen, 'ANACHRON is shutting down...');
+  await wait(1500);
+
+  screen.textContent = '';
+  const message = document.createElement('div');
+  message.className = 'shutdown-message';
+  message.textContent = 'It is now safe to turn off\nyour computer.';
+  screen.append(message);
 }

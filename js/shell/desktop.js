@@ -1,4 +1,4 @@
-// The desktop: icons, taskbar and clock.
+// The desktop: icons, taskbar, Start menu and clock.
 
 import { APPS } from '../app.js';
 import {
@@ -7,10 +7,16 @@ import {
 } from '../system/wm.js';
 import { listFiles, deleteFile, onFilesChanged } from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
+import { setUpStartMenu } from './start-menu.js';
 
 const DOUBLE_CLICK_MS = 450;
 
-export function showDesktop(screen) {
+// Things to undo when the desktop goes away (timers, listeners
+// on the whole page), so nothing is left running after a shut down
+const cleanups = [];
+
+// onShutDown is called after the user confirms Shut Down.
+export function showDesktop(screen, { onShutDown }) {
   screen.innerHTML = `
     <div id="desktop">
       <div id="desktop-icons"></div>
@@ -33,8 +39,33 @@ export function showDesktop(screen) {
   // gets focus, or is minimized
   onWindowsChanged(renderTaskbarButtons);
 
+  cleanups.push(setUpStartMenu(desktop, {
+    apps: APPS,
+    onLaunch: launchApp,
+    onShutDown: () => confirmShutDown(desktop, onShutDown),
+  }));
+
   updateClock();
-  setInterval(updateClock, 1000);
+  const clockTimer = setInterval(updateClock, 1000);
+  cleanups.push(() => clearInterval(clockTimer));
+}
+
+// Stops everything the desktop started. The screen itself is
+// cleared by whoever shows the next thing on it.
+export function hideDesktop() {
+  for (const cleanup of cleanups) cleanup();
+  cleanups.length = 0;
+}
+
+async function confirmShutDown(desktop, onShutDown) {
+  const confirmed = await showConfirmDialog(desktop, {
+    title: 'Shut Down ANACHRON',
+    message: 'Are you sure you want to shut down the computer?',
+    confirmLabel: 'Yes',
+    cancelLabel: 'No',
+  });
+
+  if (confirmed) onShutDown();
 }
 
 // ---------- Icons ----------
@@ -60,7 +91,7 @@ function createIcons(desktop) {
   iconArea.append(fileIcons);
 
   renderFileIcons();
-  onFilesChanged(renderFileIcons);
+  cleanups.push(onFilesChanged(renderFileIcons));
 
   // Pressing anywhere that isn't an icon (the empty desktop,
   // a window, the taskbar) clears the selection
@@ -72,7 +103,7 @@ function createIcons(desktop) {
 
   // Delete (or Backspace, since Mac laptops have no Delete key)
   // deletes the selected file, unless you are typing somewhere
-  document.addEventListener('keydown', (event) => {
+  function onKeyDown(event) {
     if (event.key !== 'Delete' && event.key !== 'Backspace') return;
     if (event.target.closest('input, textarea')) return;
     if (desktop.querySelector('.dialog-overlay')) return;
@@ -82,7 +113,9 @@ function createIcons(desktop) {
       event.preventDefault();
       confirmDelete(selected.dataset.fileName);
     }
-  });
+  }
+  document.addEventListener('keydown', onKeyDown);
+  cleanups.push(() => document.removeEventListener('keydown', onKeyDown));
 }
 
 // Builds one icon. onOpen runs when it is double-clicked.

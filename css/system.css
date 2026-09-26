@@ -230,3 +230,19 @@ body {
 }
 
 
+
+/* "It is now safe to turn off your computer." in the middle
+   of an otherwise dark screen */
+.shutdown-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: pre-line;
+  color: #ff9a3c;
+  font-size: calc(var(--u) * 3.2);
+  font-weight: bold;
+  text-shadow: 0 0 calc(var(--u) * 0.6) rgba(255, 154, 60, 0.5);
+}
