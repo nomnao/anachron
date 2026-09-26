@@ -246,3 +246,27 @@ body {
   font-weight: bold;
   text-shadow: 0 0 calc(var(--u) * 0.6) rgba(255, 154, 60, 0.5);
 }
+
+/* ================= PHONE NOTE ================= */
+
+/* A quiet line at the top of the page, only on phones and tablets
+   (touch screens) or very narrow windows. ANACHRON is built for a
+   mouse and keyboard. */
+#device-note {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  text-align: center;
+  font-family: -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  color: #1f3a4d;
+}
+
+@media (max-width: 700px), (hover: none) and (pointer: coarse) {
+  #device-note {
+    display: block;
+  }
+}
