@@ -17,9 +17,11 @@ const STORAGE_KEY = 'anachron.files';
 const BIN_STORAGE_KEY = 'anachron.recycled';
 
 // A list of files, in the order they were first saved:
-//   { name, type, content }                 - small files
-//   { name, type, big: true, size, ... }    - big files
-// Files saved before types existed were all text.
+//   { name, type, content, modified }              - small files
+//   { name, type, big: true, size, modified, ... } - big files
+// modified is when the file was last saved (a timestamp). Files
+// saved before types existed were all text, and files saved before
+// dates were kept have no modified.
 let files = loadFiles().map((file) => ({ type: 'text', ...file }));
 
 // The Recycle Bin: deleted files, each with an id of its own (two
@@ -73,7 +75,7 @@ export function readFile(name) {
 // Returns false if the browser had no room to keep it: the file
 // still works until the page is closed, but will then be lost.
 export function writeFile(name, content, type = 'text') {
-  replaceEntry({ name, type, content });
+  replaceEntry({ name, type, content, modified: Date.now() });
   const kept = saveFiles();
   trackEvent('save-file');
   notify();
@@ -127,6 +129,19 @@ export async function renameFile(oldName, newName) {
   for (const listener of [...renameListeners]) listener(oldName, newName);
   notify();
   return true;
+}
+
+// How many bytes a file takes. Pictures are stored as base64 text,
+// which is a third bigger than the picture itself, so we count
+// the picture's real size.
+export function fileSize(file) {
+  // Big files (videos) know their own size
+  if (file.big) return file.size;
+  if (file.type === 'image') {
+    const base64 = file.content.split(',')[1] ?? '';
+    return Math.floor((base64.length * 3) / 4);
+  }
+  return new Blob([file.content]).size;
 }
 
 // Puts a file in the list, in place of any file with the same name.
@@ -261,7 +276,7 @@ export async function writeBigFile(name, blob, type, extra = {}) {
     return false;
   }
 
-  replaceEntry({ name, type, big: true, size: blob.size, ...extra });
+  replaceEntry({ name, type, big: true, size: blob.size, modified: Date.now(), ...extra });
   saveFiles();
   trackEvent('save-file');
   notify();

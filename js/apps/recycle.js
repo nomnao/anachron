@@ -4,13 +4,13 @@
 // something is deleted or restored anywhere.
 
 import { fileTypeOf } from '../app.js';
-import { fileSize, formatSize } from './files.js';
+import { formatSize } from './files.js';
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
 import { showContextMenu } from '../shell/context-menu.js';
 import { confirmEmptyRecycleBin } from '../shell/recycle.js';
 import {
-  listRecycled, fileExists, restoreFile, deleteRecycled, onRecycleBinChanged,
+  listRecycled, fileExists, restoreFile, deleteRecycled, onRecycleBinChanged, fileSize,
 } from '../system/fs.js';
 
 export function createApp() {

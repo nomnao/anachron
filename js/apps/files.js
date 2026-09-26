@@ -8,7 +8,7 @@ import { setUpMenuBar } from '../shell/menus.js';
 import { showContextMenu } from '../shell/context-menu.js';
 import { isDoubleClick } from '../shell/double-click.js';
 import { renameInPlace } from '../shell/rename.js';
-import { listFiles, onFilesChanged } from '../system/fs.js';
+import { listFiles, onFilesChanged, fileSize } from '../system/fs.js';
 import { confirmRecycle } from '../shell/recycle.js';
 
 // context comes from the desktop:
@@ -218,19 +218,6 @@ async function deleteSelected(explorer) {
 }
 
 // ---------- Sizes ----------
-
-// How many bytes a file takes. Pictures are stored as base64 text,
-// which is a third bigger than the picture itself, so we count
-// the picture's real size.
-export function fileSize(file) {
-  // Big files (videos) know their own size
-  if (file.big) return file.size;
-  if (file.type === 'image') {
-    const base64 = file.content.split(',')[1] ?? '';
-    return Math.floor((base64.length * 3) / 4);
-  }
-  return new Blob([file.content]).size;
-}
 
 // Sizes are shown in whole kilobytes, rounded up, like "3KB"
 export function formatSize(bytes) {

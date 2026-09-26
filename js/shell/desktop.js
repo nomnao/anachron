@@ -5,7 +5,9 @@ import {
   initWindowManager, openWindow, closeAllWindows, requestCloseAll, hasWindow, restoreWindow, renameWindow,
   setWindowTitle, setWindowSize, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
-import { listFiles, listRecycled, onFilesChanged, onFileRenamed, onRecycleBinChanged } from '../system/fs.js';
+import {
+  listFiles, listRecycled, fileSize, onFilesChanged, onFileRenamed, onRecycleBinChanged,
+} from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
 import { trackEvent } from '../system/analytics.js';
 import { showContextMenu } from './context-menu.js';
@@ -17,6 +19,11 @@ import { confirmRecycle, confirmEmptyRecycleBin } from './recycle.js';
 // Things to undo when the desktop goes away (timers, listeners
 // on the whole page), so nothing is left running after a shut down
 const cleanups = [];
+
+// How the saved files' icons are sorted: 'name', 'type', 'size',
+// 'date', or null for the order they were first saved
+const SORT_STORAGE_KEY = 'anachron.desktop-sort';
+let sortBy = loadSortBy();
 
 // Every open app window: window id -> { id }. The id changes when the
 // window's file is renamed, and apps always use the current one.
@@ -119,6 +126,21 @@ function createIcons(desktop) {
 
   // Pressing anywhere that isn't an icon (the empty desktop,
   // a window, the taskbar) clears the selection
+  // Right-clicking the empty desktop: a menu to arrange the icons
+  desktop.addEventListener('contextmenu', (event) => {
+    if (event.target !== desktop && event.target !== iconArea) return;
+
+    event.preventDefault();
+    selectIcon(null);
+    showContextMenu(event, [
+      { label: 'Arrange Icons', items: SORT_ORDERS.map((order) => ({
+        label: order.label,
+        checked: sortBy === order.id,
+        action: () => arrangeIcons(order.id),
+      })) },
+    ]);
+  });
+
   desktop.addEventListener('pointerdown', (event) => {
     if (!event.target.closest('.desktop-icon')) {
       selectIcon(null);
@@ -159,7 +181,7 @@ function createIcon(image, label, onOpen) {
 }
 
 function renderFileIcons() {
-  const icons = listFiles().map((file) => {
+  const icons = sortFiles(listFiles()).map((file) => {
     const open = () => openFile(file.name);
     const icon = createIcon(fileTypeOf(file).icon, file.name, open);
     icon.dataset.fileName = file.name;
@@ -179,6 +201,44 @@ function renderFileIcons() {
   });
 
   document.querySelector('#file-icons').replaceChildren(...icons);
+}
+
+// ---------- Arranging icons ----------
+
+// Every way the icons can be sorted. Ties are broken by name.
+const byName = (a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+const SORT_ORDERS = [
+  { id: 'name', label: 'by Name', compare: byName },
+  { id: 'type', label: 'by Type',
+    compare: (a, b) => fileTypeOf(a).label.localeCompare(fileTypeOf(b).label) || byName(a, b) },
+  { id: 'size', label: 'by Size', compare: (a, b) => fileSize(a) - fileSize(b) || byName(a, b) },
+  // Newest first. Files saved before dates were kept count as oldest.
+  { id: 'date', label: 'by Date', compare: (a, b) => (b.modified ?? 0) - (a.modified ?? 0) || byName(a, b) },
+];
+
+function sortFiles(files) {
+  const order = SORT_ORDERS.find((o) => o.id === sortBy);
+  return order ? files.sort(order.compare) : files;
+}
+
+// Sorts the icons, and keeps them sorted that way from now on,
+// even as files are saved, renamed or deleted
+function arrangeIcons(order) {
+  sortBy = order;
+  try {
+    localStorage.setItem(SORT_STORAGE_KEY, order);
+  } catch {
+    // Not kept, but the icons are still sorted until the page closes
+  }
+  renderFileIcons();
+}
+
+function loadSortBy() {
+  try {
+    return localStorage.getItem(SORT_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 // Turns the icon's label into a text box to type a new name.
