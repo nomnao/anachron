@@ -530,6 +530,8 @@
 .dialog-message {
   min-height: 2.4em;
   margin: 0;
+  /* A message can have several lines (e.g. Minesweeper's best times) */
+  white-space: pre-line;
 }
 
 .dialog-buttons {
@@ -1283,3 +1285,145 @@
   user-select: text;
   -webkit-user-select: text;
 }
+
+/* ================= MINESWEEPER ================= */
+
+.minesweeper {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  outline: none;
+}
+
+.minesweeper .menu-bar {
+  align-self: stretch;
+}
+
+/* A tick in front of the chosen level */
+.minesweeper .menu-items button {
+  position: relative;
+}
+
+.minesweeper .menu-items button.is-checked::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--px) * 5);
+  top: 50%;
+  width: calc(var(--px) * 3);
+  height: calc(var(--px) * 6);
+  margin-top: calc(var(--px) * -4);
+  border: solid currentColor;
+  border-width: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  transform: rotate(45deg);
+}
+
+/* The raised grey box around the counters and the board */
+.mine-game {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 6);
+  padding: calc(var(--px) * 9);
+  box-shadow:
+    inset calc(var(--px) * 3) calc(var(--px) * 3) 0 #ffffff,
+    inset calc(var(--px) * -3) calc(var(--px) * -3) 0 #808080;
+}
+
+/* Mines left, the face, and the time, in a sunken strip */
+.mine-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--px) * 4) calc(var(--px) * 6);
+  border: calc(var(--px) * 2) solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+/* Red digits on black, like an LED display */
+.mine-led {
+  width: calc(var(--px) * 41);
+  height: calc(var(--px) * 25);
+  background: #000000;
+  color: #ff0000;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: calc(var(--px) * 20);
+  font-weight: bold;
+  line-height: calc(var(--px) * 23);
+  text-align: center;
+  overflow: hidden;
+  border: var(--px) solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+.mine-face {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--px) * 26);
+  height: calc(var(--px) * 26);
+  padding: 0;
+  border: var(--px) solid #808080;
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #ffffff,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
+}
+
+.mine-face:active {
+  box-shadow: inset var(--px) var(--px) 0 #808080;
+}
+
+.mine-face svg {
+  width: calc(var(--px) * 17);
+  height: calc(var(--px) * 17);
+}
+
+.mine-board {
+  display: grid;
+  border: calc(var(--px) * 3) solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+}
+
+/* A covered square is a small raised button */
+.mine-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--px) * 16);
+  height: calc(var(--px) * 16);
+  border: calc(var(--px) * 2) solid;
+  border-color: #ffffff #808080 #808080 #ffffff;
+  background: #c0c0c0;
+  font-size: calc(var(--px) * 12);
+  font-weight: bold;
+}
+
+.mine-cell:not(.is-open):active {
+  border-width: var(--px) 0 0 var(--px);
+  border-color: #808080;
+}
+
+/* Uncovered squares are flat, with thin grid lines between them */
+.mine-cell.is-open {
+  border-width: var(--px) 0 0 var(--px);
+  border-color: #808080;
+}
+
+.mine-cell.is-exploded {
+  background: #ff0000;
+}
+
+.mine-cell svg {
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 12);
+}
+
+.mine-cell.count-1 { color: #0000ff; }
+.mine-cell.count-2 { color: #008000; }
+.mine-cell.count-3 { color: #ff0000; }
+.mine-cell.count-4 { color: #000080; }
+.mine-cell.count-5 { color: #800000; }
+.mine-cell.count-6 { color: #008080; }
+.mine-cell.count-7 { color: #000000; }
+.mine-cell.count-8 { color: #808080; }

@@ -34,7 +34,10 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 | **Camera** | Shows your webcam. Take Picture freezes the shot; save it if you like it, or Retake. |
 | **Video Recorder** | Records up to 60 seconds of webcam video (with sound, if you allow the microphone). It plays back straight away; save it if you like it, or Record Again. |
 | **My Files** | Lists every file with its type and size. Open, rename or delete files from here too. |
+| **Minesweeper** | The classic: uncover every square that isn't a mine. Beginner, Intermediate and Expert levels, a mine counter, a timer and your best times. |
 | **Recycle Bin** | Lists deleted files, with when they were deleted. Restore them, delete them for good, or empty the bin. |
+
+**How to play Minesweeper:** click a square to uncover it. A number tells you how many of the eight squares around it hide a mine. Right-click a square to plant a flag where you think a mine is. Once a number has all its mines flagged, click it to uncover the squares around it. Your first click is always safe; click the smiley face (or press F2) to start again.
 
 Double-clicking a saved file opens the right program:
 
@@ -57,7 +60,7 @@ Photos and videos have the same chunky-pixel look as Paint, and a photo is exact
 |---|---|
 | Ctrl+S / Cmd+S | Save in Notepad, Paint, Camera and Video Recorder |
 | Ctrl+Z / Cmd+Z | Undo in Paint |
-| F2 | Rename the selected file (desktop or My Files) |
+| F2 | Rename the selected file (desktop or My Files); new game in Minesweeper |
 | Delete (or Backspace) | Send the selected file to the Recycle Bin, after asking (in the Recycle Bin: delete it for good) |
 | Enter | Open the selected file in My Files, or restore it in the Recycle Bin |
 | ↑ / ↓ | Move through the list in My Files and the Recycle Bin |
