@@ -1,15 +1,15 @@
 // The desktop: icons, taskbar, Start menu and clock.
 
-import { APPS } from '../app.js';
+import { APPS, fileTypeOf } from '../app.js';
 import {
   initWindowManager, openWindow, hasWindow, restoreWindow,
   setWindowTitle, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
 import { listFiles, deleteFile, onFilesChanged } from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
+import { showContextMenu } from './context-menu.js';
+import { isDoubleClick } from './double-click.js';
 import { setUpStartMenu } from './start-menu.js';
-
-const DOUBLE_CLICK_MS = 450;
 
 // Things to undo when the desktop goes away (timers, listeners
 // on the whole page), so nothing is left running after a shut down
@@ -70,12 +70,6 @@ async function confirmShutDown(desktop, onShutDown) {
 
 // ---------- Icons ----------
 
-// What each type of file looks like, and which app opens it
-const FILE_TYPES = {
-  text:  { icon: 'assets/icons/text-file.svg',  appId: 'notepad' },
-  image: { icon: 'assets/icons/image-file.svg', appId: 'paint' },
-};
-
 function createIcons(desktop) {
   const iconArea = desktop.querySelector('#desktop-icons');
 
@@ -134,10 +128,8 @@ function createIcon(image, label, onOpen) {
 
 function renderFileIcons() {
   const icons = listFiles().map((file) => {
-    const type = FILE_TYPES[file.type] ?? FILE_TYPES.text;
-    const app = APPS.find((a) => a.id === type.appId);
-    const open = () => launchApp(app, { fileName: file.name });
-    const icon = createIcon(type.icon, file.name, open);
+    const open = () => openFile(file.name);
+    const icon = createIcon(fileTypeOf(file).icon, file.name, open);
     icon.dataset.fileName = file.name;
 
     // Right-click: a small menu to open or delete the file
@@ -168,73 +160,24 @@ async function confirmDelete(name) {
   if (confirmed) deleteFile(name);
 }
 
-// ---------- Right-click menu ----------
-
-// Shows a list of { label, action } where the pointer is.
-// Choosing one, or pressing anywhere else, closes it.
-function showContextMenu(event, items) {
-  const desktop = document.querySelector('#desktop');
-  desktop.querySelector('.context-menu')?.remove();
-
-  const menu = document.createElement('div');
-  menu.className = 'menu-items context-menu';
-
-  for (const item of items) {
-    const button = document.createElement('button');
-    button.textContent = item.label;
-    button.addEventListener('click', () => {
-      close();
-      item.action();
-    });
-    menu.append(button);
-  }
-
-  desktop.append(menu);
-
-  // Open at the pointer, but keep the whole menu on screen
-  const area = desktop.getBoundingClientRect();
-  const x = Math.min(event.clientX - area.left, area.width - menu.offsetWidth);
-  const y = Math.min(event.clientY - area.top, area.height - menu.offsetHeight);
-  menu.style.left = `${x}px`;
-  menu.style.top = `${y}px`;
-
-  function onPointerDown(downEvent) {
-    if (!menu.contains(downEvent.target)) close();
-  }
-
-  function close() {
-    menu.remove();
-    document.removeEventListener('pointerdown', onPointerDown, true);
-  }
-
-  // "true" = hear about the press before anything else does
-  document.addEventListener('pointerdown', onPointerDown, true);
-}
-
-// We detect double-clicks ourselves, so it works the same
-// with a mouse and with a finger on a phone.
-let lastClickedIcon = null;
-let lastClickTime = 0;
-
 function handleIconClick(icon, onOpen) {
-  const now = Date.now();
-  const isDoubleClick = icon === lastClickedIcon && now - lastClickTime < DOUBLE_CLICK_MS;
-
-  lastClickedIcon = icon;
-  lastClickTime = now;
-
   selectIcon(icon);
-
-  if (isDoubleClick) {
-    lastClickedIcon = null;
-    onOpen();
-  }
+  if (isDoubleClick(icon)) onOpen();
 }
 
 function selectIcon(icon) {
   for (const other of document.querySelectorAll('.desktop-icon')) {
     other.classList.toggle('is-selected', other === icon);
   }
+}
+
+// Opens a file in the app that belongs to its type
+function openFile(name) {
+  const file = listFiles().find((f) => f.name === name);
+  if (!file) return;
+
+  const app = APPS.find((a) => a.id === fileTypeOf(file).appId);
+  launchApp(app, { fileName: name });
 }
 
 // Apps that have been built load their own module and draw
@@ -259,6 +202,8 @@ async function launchApp(app, options = {}) {
       title = newTitle;
       setWindowTitle(id, newTitle);
     },
+    // Lets an app (like My Files) open a file in its own app
+    openFile,
   };
 
   const content = app.load
