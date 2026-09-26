@@ -932,7 +932,7 @@
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
 }
 
-/* ================= CAMERA ================= */
+/* ========== CAMERA AND VIDEO RECORDER ========== */
 
 .camera {
   position: relative;
@@ -943,7 +943,7 @@
 }
 
 /* A black, sunken box around the live picture */
-.camera-view {
+.capture-view {
   position: relative;
   flex: 1;
   min-height: 0;
@@ -958,14 +958,14 @@
 }
 
 /* One photo pixel = one virtual pixel, like Paint */
-.camera-canvas {
+.capture-canvas {
   width: calc(var(--px) * 360);
   height: calc(var(--px) * 220);
   image-rendering: pixelated;
 }
 
 /* Waiting / error text, over the black picture */
-.camera-message {
+.capture-message {
   position: absolute;
   inset: 0;
   display: flex;
@@ -979,17 +979,17 @@
   background: #000000;
 }
 
-.camera-message[hidden],
-.camera-message [hidden] {
+.capture-message[hidden],
+.capture-message [hidden] {
   display: none;
 }
 
-.camera-message p {
+.capture-message p {
   margin: 0;
   max-width: calc(var(--px) * 260);
 }
 
-.camera-message .push-button {
+.capture-message .push-button {
   color: #000000;
 }
 
@@ -1011,24 +1011,24 @@
   to   { opacity: 0; }
 }
 
-.camera-controls {
+.capture-controls {
   display: flex;
   align-items: center;
   gap: calc(var(--px) * 6);
   padding-top: calc(var(--px) * 4);
 }
 
-.camera-shutter {
+.capture-main {
   min-width: calc(var(--px) * 100);
   font-weight: bold;
 }
 
-.camera-shutter:disabled {
+.capture-main:disabled {
   color: #808080;
   text-shadow: var(--px) var(--px) 0 #ffffff;
 }
 
-.camera-status {
+.capture-status {
   flex: 1;
 }
 
@@ -1073,4 +1073,179 @@
 /* ----- Camera: lets the window take key presses without an outline ----- */
 .camera {
   outline: none;
+}
+
+/* ----- Video Recorder ----- */
+
+.recorder {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+.capture-canvas[hidden],
+.recorder-review[hidden],
+.recording-badge[hidden] {
+  display: none;
+}
+
+/* The playback fills the black viewfinder */
+.recorder-review {
+  align-self: stretch;
+  flex: 1;
+  display: flex;
+}
+
+/* "● REC 0:05" in the corner while recording */
+.recording-badge {
+  position: absolute;
+  top: calc(var(--px) * 8);
+  left: calc(var(--px) * 10);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+  padding: calc(var(--px) * 2) calc(var(--px) * 5);
+  background: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.recording-dot {
+  width: calc(var(--px) * 7);
+  height: calc(var(--px) * 7);
+  border-radius: 50%;
+  background: #ff2020;
+  animation: recording-blink 1s steps(1) infinite;
+}
+
+@keyframes recording-blink {
+  50% { opacity: 0; }
+}
+
+/* Little pictures on the Record and Stop buttons */
+.capture-main {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--px) * 5);
+}
+
+.capture-main[hidden] {
+  display: none;
+}
+
+.glyph-record {
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 8);
+  border-radius: 50%;
+  background: #d00000;
+}
+
+.glyph-stop {
+  width: calc(var(--px) * 7);
+  height: calc(var(--px) * 7);
+  background: #000000;
+}
+
+/* ================= VIDEO PLAYER ================= */
+
+.player {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.player-message {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  background: #000000;
+  color: #ffffff;
+}
+
+/* Used by Video Player and by Video Recorder's playback */
+.video-player {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-player[hidden] {
+  display: none;
+}
+
+.player-screen {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000000;
+}
+
+/* One video pixel = one virtual pixel, like Camera and Paint */
+.player-video {
+  width: calc(var(--px) * 360);
+  height: calc(var(--px) * 220);
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+}
+
+.player-controls {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 6);
+  padding: calc(var(--px) * 3);
+  background: #c0c0c0;
+}
+
+.player-play {
+  min-width: calc(var(--px) * 28);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* A black triangle, and two bars for pause */
+.glyph-play {
+  width: 0;
+  height: 0;
+  border-top: calc(var(--px) * 5) solid transparent;
+  border-bottom: calc(var(--px) * 5) solid transparent;
+  border-left: calc(var(--px) * 8) solid #000000;
+}
+
+.glyph-pause {
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 9);
+  border-left: calc(var(--px) * 3) solid #000000;
+  border-right: calc(var(--px) * 3) solid #000000;
+}
+
+.player-track {
+  flex: 1;
+  height: calc(var(--px) * 12);
+  padding: calc(var(--px) * 2);
+  cursor: pointer;
+}
+
+.player-progress {
+  width: 0;
+  height: 100%;
+  background: #000080;
+}
+
+.player-time {
+  min-width: calc(var(--px) * 64);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }

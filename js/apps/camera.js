@@ -8,11 +8,10 @@
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
+import {
+  FRAME_WIDTH, FRAME_HEIGHT, openWebcam, explainWebcamError, drawMirroredFrame, stopStream,
+} from '../shell/webcam.js';
 import { fileExists, writeFile } from '../system/fs.js';
-
-// The same size as Paint's canvas
-const PHOTO_WIDTH = 360;
-const PHOTO_HEIGHT = 220;
 
 // What to call the save shortcut in messages
 const SAVE_KEYS = /Mac|iPhone|iPad/.test(navigator.platform) ? 'Cmd+S' : 'Ctrl+S';
@@ -34,23 +33,23 @@ export function createApp(context) {
         </div>
       </div>
     </div>
-    <div class="camera-view">
-      <canvas class="camera-canvas" width="${PHOTO_WIDTH}" height="${PHOTO_HEIGHT}"></canvas>
-      <div class="camera-message">
+    <div class="capture-view">
+      <canvas class="capture-canvas" width="${FRAME_WIDTH}" height="${FRAME_HEIGHT}"></canvas>
+      <div class="capture-message">
         <p></p>
         <button class="push-button" data-action="retry" hidden>Try Again</button>
       </div>
       <div class="camera-flash"></div>
     </div>
-    <div class="camera-controls">
-      <button class="push-button camera-shutter" data-action="shoot" disabled>Take Picture</button>
+    <div class="capture-controls">
+      <button class="push-button capture-main" data-action="shoot" disabled>Take Picture</button>
       <button class="push-button" data-action="retake" hidden>Retake</button>
       <button class="push-button" data-action="save" hidden>Save...</button>
-      <span class="status-field camera-status"></span>
+      <span class="status-field capture-status"></span>
     </div>
   `;
 
-  const canvas = root.querySelector('.camera-canvas');
+  const canvas = root.querySelector('.capture-canvas');
   const camera = {
     root,
     canvas,
@@ -94,30 +93,21 @@ export function createApp(context) {
 // ---------- Starting and stopping ----------
 
 async function startCamera(camera) {
-  // Browsers only allow the camera on https:// pages and on localhost
-  if (!navigator.mediaDevices?.getUserMedia) {
-    showMessage(camera, 'This browser cannot use a camera here.', false);
-    return;
-  }
-
   showMessage(camera, 'Waiting for permission to use the camera...', false);
   setStatus(camera, 'Starting camera...');
 
   let stream;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 640 }, height: { ideal: 480 } },
-      audio: false,
-    });
+    stream = await openWebcam();
   } catch (error) {
-    showMessage(camera, explainError(error), true);
+    showMessage(camera, explainWebcamError(error), true);
     setStatus(camera, 'No camera');
     return;
   }
 
   // The window may have been closed while the browser was asking
   if (camera.closed) {
-    stream.getTracks().forEach((track) => track.stop());
+    stopStream(stream);
     return;
   }
 
@@ -132,21 +122,7 @@ async function startCamera(camera) {
 function stopCamera(camera) {
   camera.closed = true;
   cancelAnimationFrame(camera.frame);
-  camera.stream?.getTracks().forEach((track) => track.stop());
-}
-
-// Turns the browser's error into words people can act on
-function explainError(error) {
-  if (error.name === 'NotAllowedError') {
-    return 'Camera access was blocked. Allow it in your browser, then press Try Again.';
-  }
-  if (error.name === 'NotFoundError' || error.name === 'OverconstrainedError') {
-    return 'No camera was found. Connect one, then press Try Again.';
-  }
-  if (error.name === 'NotReadableError') {
-    return 'The camera is being used by another program.';
-  }
-  return 'The camera could not be started.';
+  stopStream(camera.stream);
 }
 
 // ---------- Live picture and taken picture ----------
@@ -165,7 +141,7 @@ function takePicture(camera) {
   if (!camera.stream) return;
 
   cancelAnimationFrame(camera.frame);
-  drawFrame(camera);
+  drawMirroredFrame(camera.ctx, camera.video);
   camera.photo = camera.canvas.toDataURL('image/png');
 
   flash(camera);
@@ -188,28 +164,8 @@ function showButtons(camera, actions) {
 
 // Copies the webcam into the canvas on every screen refresh
 function drawLoop(camera) {
-  drawFrame(camera);
+  drawMirroredFrame(camera.ctx, camera.video);
   camera.frame = requestAnimationFrame(() => drawLoop(camera));
-}
-
-// Draws the middle of the webcam picture, cut to the photo's shape,
-// and mirrored so moving left moves left, like a mirror
-function drawFrame(camera) {
-  const { video, ctx } = camera;
-  const { videoWidth, videoHeight } = video;
-  if (!videoWidth) return;
-
-  const scale = Math.max(PHOTO_WIDTH / videoWidth, PHOTO_HEIGHT / videoHeight);
-  const cropWidth = PHOTO_WIDTH / scale;
-  const cropHeight = PHOTO_HEIGHT / scale;
-  const cropX = (videoWidth - cropWidth) / 2;
-  const cropY = (videoHeight - cropHeight) / 2;
-
-  ctx.save();
-  ctx.translate(PHOTO_WIDTH, 0);
-  ctx.scale(-1, 1);
-  ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
-  ctx.restore();
 }
 
 // A quick white flash over the viewfinder
@@ -259,16 +215,16 @@ function nextPhotoName() {
 // ---------- Messages ----------
 
 function showMessage(camera, text, canRetry) {
-  const message = camera.root.querySelector('.camera-message');
+  const message = camera.root.querySelector('.capture-message');
   message.hidden = false;
   message.querySelector('p').textContent = text;
   message.querySelector('[data-action="retry"]').hidden = !canRetry;
 }
 
 function hideMessage(camera) {
-  camera.root.querySelector('.camera-message').hidden = true;
+  camera.root.querySelector('.capture-message').hidden = true;
 }
 
 function setStatus(camera, text) {
-  camera.root.querySelector('.camera-status').textContent = text;
+  camera.root.querySelector('.capture-status').textContent = text;
 }

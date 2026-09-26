@@ -15,9 +15,12 @@ export const APPS = [
     load: () => import('./apps/paint.js') },
   { id: 'camera',   title: 'Camera',         icon: 'assets/icons/camera.svg',   width: 384, height: 310,
     load: () => import('./apps/camera.js') },
-  { id: 'recorder', title: 'Video Recorder', icon: 'assets/icons/recorder.svg', width: 300, height: 280 },
+  { id: 'recorder', title: 'Video Recorder', icon: 'assets/icons/recorder.svg', width: 384, height: 340,
+    load: () => import('./apps/recorder.js') },
   { id: 'viewer',   title: 'Image Viewer',   icon: 'assets/icons/image-file.svg', width: 384, height: 280,
     load: () => import('./apps/viewer.js'), listed: false },
+  { id: 'player',   title: 'Video Player',   icon: 'assets/icons/video-file.svg', width: 384, height: 300,
+    load: () => import('./apps/player.js'), listed: false },
 ];
 
 // The apps people can start themselves (desktop icons, Start menu)
@@ -28,6 +31,7 @@ export const LISTED_APPS = APPS.filter((app) => app.listed !== false);
 export const FILE_TYPES = {
   text:  { icon: 'assets/icons/text-file.svg',  label: 'Text Document', appId: 'notepad' },
   image: { icon: 'assets/icons/image-file.svg', label: 'PNG Image',     appId: 'viewer' },
+  video: { icon: 'assets/icons/video-file.svg', label: 'Video Clip',    appId: 'player' },
 };
 
 // The type info for a file. Unknown types are treated as text.

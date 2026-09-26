@@ -209,6 +209,8 @@ async function deleteSelected(explorer) {
 // which is a third bigger than the picture itself, so we count
 // the picture's real size.
 function fileSize(file) {
+  // Big files (videos) know their own size
+  if (file.big) return file.size;
   if (file.type === 'image') {
     const base64 = file.content.split(',')[1] ?? '';
     return Math.floor((base64.length * 3) / 4);
