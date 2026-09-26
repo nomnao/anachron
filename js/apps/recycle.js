@@ -1,17 +1,22 @@
 // Recycle Bin: files that were deleted from the desktop or My Files.
 // Restore puts a file back on the desktop; Delete (or Empty Recycle
-// Bin) gets rid of it for good. The list updates by itself whenever
-// something is deleted or restored anywhere.
+// Bin) gets rid of it for good. Click a column title to sort by
+// that column, and again to reverse the order. The list updates by
+// itself whenever something is deleted or restored anywhere.
 
 import { fileTypeOf } from '../app.js';
-import { fileSize, formatSize } from './files.js';
+import { formatSize } from './files.js';
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
 import { showContextMenu } from '../shell/context-menu.js';
 import { confirmEmptyRecycleBin } from '../shell/recycle.js';
+import { fileEntry, sortByEntry, setUpColumnSorting } from '../shell/sort-files.js';
 import {
-  listRecycled, fileExists, restoreFile, deleteRecycled, onRecycleBinChanged,
+  listRecycled, fileExists, restoreFile, deleteRecycled, onRecycleBinChanged, fileSize,
 } from '../system/fs.js';
+
+// Where the column the list is sorted by is kept for next time
+const SORT_STORAGE_KEY = 'anachron.recycle-sort';
 
 export function createApp() {
   const root = document.createElement('div');
@@ -34,9 +39,9 @@ export function createApp() {
 
     <div class="files-list sunken-panel">
       <div class="files-header">
-        <span>Name</span>
-        <span>Date Deleted</span>
-        <span>Size</span>
+        <span data-sort="name">Name</span>
+        <span data-sort="date">Date Deleted</span>
+        <span data-sort="size">Size</span>
       </div>
       <div class="files-rows"></div>
       <p class="files-empty">The Recycle Bin is empty.</p>
@@ -52,6 +57,9 @@ export function createApp() {
     root,
     rows: root.querySelector('.files-rows'),
     selectedId: null,
+    // Which column the list is sorted by ('name', 'date' or 'size',
+    // or null for most recently deleted first), and which way
+    sort: setUpColumnSorting(root.querySelector('.files-header'), SORT_STORAGE_KEY, () => render(bin)),
   };
 
   render(bin);
@@ -81,8 +89,13 @@ export function createApp() {
 
 function render(bin) {
   const { root, rows } = bin;
-  // Most recently deleted first
-  const items = listRecycled().reverse();
+  // Date Deleted sorts by when the file was deleted, newest first
+  // (clicking it again puts the oldest first)
+  const withEntries = listRecycled().reverse().map((item) => ({
+    ...item,
+    entry: { ...fileEntry(item), modified: item.deletedAt },
+  }));
+  const items = sortByEntry(withEntries, bin.sort.by, bin.sort.descending);
 
   if (!items.some((item) => item.id === bin.selectedId)) {
     bin.selectedId = null;
@@ -137,6 +150,9 @@ function setUpRows(bin) {
   list.addEventListener('pointerdown', () => root.focus({ preventScroll: true }));
 
   list.addEventListener('click', (event) => {
+    // Column titles sort the list; they don't change the selection
+    if (event.target.closest('.files-header')) return;
+
     const row = event.target.closest('.files-row');
     select(bin, row ? row.dataset.id : null);
   });

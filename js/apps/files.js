@@ -1,15 +1,20 @@
 // My Files: every saved file in one list, with its type and size.
 // Double-click (or Enter) opens a file in its own app;
-// Delete sends it to the Recycle Bin. The list updates by itself whenever
-// a file is saved or deleted anywhere.
+// Delete sends it to the Recycle Bin. Click a column title to sort
+// by that column, and again to reverse the order. The list updates
+// by itself whenever a file is saved or deleted anywhere.
 
 import { fileTypeOf } from '../app.js';
 import { setUpMenuBar } from '../shell/menus.js';
 import { showContextMenu } from '../shell/context-menu.js';
 import { isDoubleClick } from '../shell/double-click.js';
 import { renameInPlace } from '../shell/rename.js';
-import { listFiles, onFilesChanged } from '../system/fs.js';
+import { listFiles, onFilesChanged, fileSize } from '../system/fs.js';
+import { fileEntry, sortByEntry, setUpColumnSorting } from '../shell/sort-files.js';
 import { confirmRecycle } from '../shell/recycle.js';
+
+// Where the column the list is sorted by is kept for next time
+const SORT_STORAGE_KEY = 'anachron.files-sort';
 
 // context comes from the desktop:
 //   openFile - opens a file in the app that belongs to its type
@@ -33,9 +38,9 @@ export function createApp(context) {
 
     <div class="files-list sunken-panel">
       <div class="files-header">
-        <span>Name</span>
-        <span>Type</span>
-        <span>Size</span>
+        <span data-sort="name">Name</span>
+        <span data-sort="type">Type</span>
+        <span data-sort="size">Size</span>
       </div>
       <div class="files-rows"></div>
       <p class="files-empty">This folder is empty.</p>
@@ -52,6 +57,9 @@ export function createApp(context) {
     rows: root.querySelector('.files-rows'),
     selectedName: null,
     openFile: context.openFile,
+    // Which column the list is sorted by ('name', 'type' or 'size',
+    // or null for the order files were first saved), and which way
+    sort: setUpColumnSorting(root.querySelector('.files-header'), SORT_STORAGE_KEY, () => render(explorer)),
   };
 
   render(explorer);
@@ -81,7 +89,9 @@ export function createApp(context) {
 
 function render(explorer) {
   const { root, rows } = explorer;
-  const files = listFiles();
+  const { by, descending } = explorer.sort;
+  const withEntries = listFiles().map((file) => ({ ...file, entry: fileEntry(file) }));
+  const files = sortByEntry(withEntries, by, descending);
 
   // If the selected file is gone (deleted), nothing is selected
   if (!files.some((file) => file.name === explorer.selectedName)) {
@@ -130,6 +140,9 @@ function setUpRows(explorer) {
   list.addEventListener('pointerdown', () => root.focus({ preventScroll: true }));
 
   list.addEventListener('click', (event) => {
+    // Column titles sort the list; they don't change the selection
+    if (event.target.closest('.files-header')) return;
+
     const row = event.target.closest('.files-row');
     if (!row) {
       select(explorer, null);
@@ -218,19 +231,6 @@ async function deleteSelected(explorer) {
 }
 
 // ---------- Sizes ----------
-
-// How many bytes a file takes. Pictures are stored as base64 text,
-// which is a third bigger than the picture itself, so we count
-// the picture's real size.
-export function fileSize(file) {
-  // Big files (videos) know their own size
-  if (file.big) return file.size;
-  if (file.type === 'image') {
-    const base64 = file.content.split(',')[1] ?? '';
-    return Math.floor((base64.length * 3) / 4);
-  }
-  return new Blob([file.content]).size;
-}
 
 // Sizes are shown in whole kilobytes, rounded up, like "3KB"
 export function formatSize(bytes) {

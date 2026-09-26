@@ -316,6 +316,7 @@
 }
 
 .menu-items button {
+  position: relative;
   padding: calc(var(--px) * 3) calc(var(--px) * 16);
   border: none;
   background: none;
@@ -324,6 +325,42 @@
 }
 
 .menu-items button:hover {
+  background: #000080;
+  color: #ffffff;
+}
+
+/* A tick in front of the chosen item (e.g. Minesweeper's level) */
+.menu-items button.is-checked::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--px) * 5);
+  top: 50%;
+  width: calc(var(--px) * 3);
+  height: calc(var(--px) * 6);
+  margin-top: calc(var(--px) * -4);
+  border: solid currentColor;
+  border-width: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  transform: rotate(45deg);
+}
+
+/* An item that opens a submenu has a small arrow on the right,
+   and stays highlighted while its submenu is open */
+.menu-items button.has-submenu {
+  padding-right: calc(var(--px) * 24);
+}
+
+.menu-items button.has-submenu::after {
+  content: '';
+  position: absolute;
+  right: calc(var(--px) * 7);
+  top: 50%;
+  margin-top: calc(var(--px) * -4);
+  border: calc(var(--px) * 4) solid transparent;
+  border-left-color: currentColor;
+  border-right-width: 0;
+}
+
+.menu-items button.is-open {
   background: #000080;
   color: #ffffff;
 }
@@ -877,6 +914,35 @@
     inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
 }
 
+/* Titles that sort the list look pushed in while pressed, and the
+   sorted one has a small arrow: up for A to Z, down for reversed */
+.files-header [data-sort] {
+  position: relative;
+  padding-right: calc(var(--px) * 16);
+}
+
+.files-header [data-sort]:active {
+  box-shadow:
+    inset var(--px) var(--px) 0 #808080,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #808080;
+}
+
+.files-header .is-sorted::after {
+  content: '';
+  position: absolute;
+  right: calc(var(--px) * 6);
+  top: 50%;
+  margin-top: calc(var(--px) * -2);
+  border: calc(var(--px) * 4) solid transparent;
+  border-bottom-color: #000000;
+  border-top-width: 0;
+}
+
+.files-header .is-descending::after {
+  border-top: calc(var(--px) * 4) solid #000000;
+  border-bottom-width: 0;
+}
+
 .files-row {
   height: calc(var(--px) * 18);
   cursor: default;
@@ -1306,23 +1372,6 @@
   overflow: hidden;
 }
 
-/* A tick in front of the chosen level */
-.minesweeper .menu-items button {
-  position: relative;
-}
-
-.minesweeper .menu-items button.is-checked::before {
-  content: '';
-  position: absolute;
-  left: calc(var(--px) * 5);
-  top: 50%;
-  width: calc(var(--px) * 3);
-  height: calc(var(--px) * 6);
-  margin-top: calc(var(--px) * -4);
-  border: solid currentColor;
-  border-width: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
-  transform: rotate(45deg);
-}
 
 /* The raised grey box around the counters and the board */
 .mine-game {

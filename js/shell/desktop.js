@@ -5,7 +5,9 @@ import {
   initWindowManager, openWindow, closeAllWindows, requestCloseAll, hasWindow, restoreWindow, renameWindow,
   setWindowTitle, setWindowSize, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
-import { listFiles, listRecycled, onFilesChanged, onFileRenamed, onRecycleBinChanged } from '../system/fs.js';
+import {
+  listFiles, listRecycled, onFilesChanged, onFileRenamed, onRecycleBinChanged,
+} from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
 import { trackEvent } from '../system/analytics.js';
 import { showContextMenu } from './context-menu.js';
@@ -13,10 +15,17 @@ import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
 import { setUpStartMenu } from './start-menu.js';
 import { confirmRecycle, confirmEmptyRecycleBin } from './recycle.js';
+import { SORT_ORDERS, fileEntry, appEntry, sortByEntry } from './sort-files.js';
 
 // Things to undo when the desktop goes away (timers, listeners
 // on the whole page), so nothing is left running after a shut down
 const cleanups = [];
+
+// How the desktop icons are sorted: 'name', 'type', 'size', 'date'
+// (see sort-files.js), or null for apps first, then files in the
+// order they were first saved
+const SORT_STORAGE_KEY = 'anachron.desktop-sort';
+let sortBy = loadSortBy();
 
 // Every open app window: window id -> { id }. The id changes when the
 // window's file is renamed, and apps always use the current one.
@@ -86,12 +95,15 @@ function createIcons(desktop) {
   const iconArea = desktop.querySelector('#desktop-icons');
 
   for (const app of LISTED_APPS) {
-    iconArea.append(createIcon(app.icon, app.title, () => launchApp(app)));
+    const icon = createIcon(app.icon, app.title, () => launchApp(app));
+    icon.dataset.appId = app.id;
+    iconArea.append(icon);
   }
 
   iconArea.append(createRecycleBinIcon(desktop));
 
-  // Saved files come after the apps. They live in their own box
+  // Saved files come after the apps (unless the icons are arranged,
+  // see applyIconOrder). They live in their own box
   // (display: contents, so they still line up in the same grid)
   // so we can redraw just them whenever a file is saved.
   const fileIcons = document.createElement('div');
@@ -119,6 +131,21 @@ function createIcons(desktop) {
 
   // Pressing anywhere that isn't an icon (the empty desktop,
   // a window, the taskbar) clears the selection
+  // Right-clicking the empty desktop: a menu to arrange the icons
+  desktop.addEventListener('contextmenu', (event) => {
+    if (event.target !== desktop && event.target !== iconArea) return;
+
+    event.preventDefault();
+    selectIcon(null);
+    showContextMenu(event, [
+      { label: 'Arrange Icons', items: SORT_ORDERS.map((order) => ({
+        label: order.label,
+        checked: sortBy === order.id,
+        action: () => arrangeIcons(order.id),
+      })) },
+    ]);
+  });
+
   desktop.addEventListener('pointerdown', (event) => {
     if (!event.target.closest('.desktop-icon')) {
       selectIcon(null);
@@ -179,6 +206,47 @@ function renderFileIcons() {
   });
 
   document.querySelector('#file-icons').replaceChildren(...icons);
+  applyIconOrder();
+}
+
+// ---------- Arranging icons ----------
+
+// Puts every icon, apps and files alike, in the chosen order.
+// Icons are placed with the CSS order property, so nothing has to
+// be rebuilt; with no order chosen, apps come first, then files
+// in the order they were first saved.
+function applyIconOrder() {
+  const files = new Map(listFiles().map((file) => [file.name, file]));
+  const items = [...document.querySelectorAll('#desktop-icons .desktop-icon')].map((el) => ({
+    el,
+    entry: el.dataset.fileName
+      ? fileEntry(files.get(el.dataset.fileName))
+      : appEntry(APPS.find((app) => app.id === el.dataset.appId)),
+  }));
+
+  sortByEntry(items, sortBy).forEach(({ el }, index) => {
+    el.style.order = sortBy ? index : '';
+  });
+}
+
+// Sorts the icons, and keeps them sorted that way from now on,
+// even as files are saved, renamed or deleted
+function arrangeIcons(order) {
+  sortBy = order;
+  try {
+    localStorage.setItem(SORT_STORAGE_KEY, order);
+  } catch {
+    // Not kept, but the icons are still sorted until the page closes
+  }
+  applyIconOrder();
+}
+
+function loadSortBy() {
+  try {
+    return localStorage.getItem(SORT_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
 // Turns the icon's label into a text box to type a new name.
@@ -202,6 +270,7 @@ function confirmDelete(name) {
 function createRecycleBinIcon(desktop) {
   const app = APPS.find((a) => a.id === 'recycle');
   const icon = createIcon(app.icon, app.title, () => launchApp(app));
+  icon.dataset.appId = app.id;
   const image = icon.querySelector('img');
 
   function update(items) {
