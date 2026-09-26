@@ -24,6 +24,8 @@ export const APPS = [
     load: () => import('./apps/camera.js') },
   { id: 'recorder', title: 'Video Recorder', icon: 'assets/icons/recorder.svg', width: 384, height: 340,
     load: () => import('./apps/recorder.js') },
+  { id: 'minesweeper', title: 'Minesweeper', icon: 'assets/icons/minesweeper.svg', width: 174, height: 256,
+    load: () => import('./apps/minesweeper.js') },
   { id: 'viewer',   title: 'Image Viewer',   icon: 'assets/icons/image-file.svg', width: 384, height: 280,
     load: () => import('./apps/viewer.js'), listed: false },
   { id: 'player',   title: 'Video Player',   icon: 'assets/icons/video-file.svg', width: 384, height: 300,

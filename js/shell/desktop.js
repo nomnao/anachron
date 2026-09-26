@@ -3,7 +3,7 @@
 import { APPS, LISTED_APPS, RECYCLE_BIN_ICONS, fileTypeOf } from '../app.js';
 import {
   initWindowManager, openWindow, closeAllWindows, requestCloseAll, hasWindow, restoreWindow, renameWindow,
-  setWindowTitle, onWindowsChanged, taskbarClick,
+  setWindowTitle, setWindowSize, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
 import { listFiles, listRecycled, onFilesChanged, onFileRenamed, onRecycleBinChanged } from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
@@ -255,10 +255,11 @@ async function launchApp(app, options = {}) {
     return;
   }
 
-  // What the app gets to work with. An app can call setTitle
-  // while it starts up, before its window exists; we keep that
-  // title and open the window with it.
+  // What the app gets to work with. An app can call setTitle and
+  // setSize while it starts up, before its window exists; we keep
+  // them and open the window with them.
   let title = app.title;
+  let size = null;
   const closeHandlers = [];
   let beforeClose = null;
   // Holds the window's current id (it changes if its file is renamed)
@@ -268,6 +269,11 @@ async function launchApp(app, options = {}) {
     setTitle(newTitle) {
       title = newTitle;
       setWindowTitle(handle.id, newTitle);
+    },
+    // Lets an app change its window's size (in virtual pixels)
+    setSize(width, height) {
+      size = { width, height };
+      setWindowSize(handle.id, width, height);
     },
     // Lets an app (like My Files) open a file in its own app
     openFile,
@@ -298,8 +304,8 @@ async function launchApp(app, options = {}) {
     id,
     title,
     icon: app.icon,
-    width: app.width,
-    height: app.height,
+    width: size?.width ?? app.width,
+    height: size?.height ?? app.height,
     content,
     beforeClose: () => (beforeClose ? beforeClose() : true),
     onClose: () => {
@@ -307,6 +313,9 @@ async function launchApp(app, options = {}) {
       closeHandlers.forEach((handler) => handler());
     },
   });
+
+  // A window sized by its app is moved, if needed, to fit on screen
+  if (size) setWindowSize(handle.id, size.width, size.height);
 }
 
 // ---------- Taskbar buttons ----------

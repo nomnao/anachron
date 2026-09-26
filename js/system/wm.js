@@ -155,6 +155,25 @@ export function setWindowTitle(id, title) {
   notify();
 }
 
+// Changes a window's size, e.g. when Minesweeper switches to a bigger
+// board. The window moves left or up if it would no longer fit.
+export function setWindowSize(id, width, height) {
+  const win = windows.get(id);
+  if (!win) return;
+
+  win.width = width;
+  win.height = height;
+
+  const rect = desktop.getBoundingClientRect();
+  if (rect.width > 0) {
+    const desktopHeight = rect.height / (rect.width / DESKTOP_WIDTH) - TASKBAR_HEIGHT;
+    win.x = clamp(win.x, 0, Math.max(0, DESKTOP_WIDTH - width));
+    win.y = clamp(win.y, 0, Math.max(0, desktopHeight - height));
+  }
+
+  applyGeometry(win);
+}
+
 // ---------- Focus ----------
 
 export function focusWindow(id) {
