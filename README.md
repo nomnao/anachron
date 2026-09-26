@@ -23,7 +23,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 - **The Start menu** lists every app, and has **Shut Down...** at the bottom.
 - **Saved files** appear as icons on the desktop. Double-click one to open it.
 - **Right-click** a file for **Open**, **Rename** and **Delete**.
-- **Right-click the empty desktop** and choose **Arrange Icons** to sort your files **by Name**, **by Type**, **by Size** or **by Date** (newest first). The icons stay sorted that way as you save, rename and delete files. The app icons always come first.
+- **Right-click the empty desktop** and choose **Arrange Icons** to sort your files **by Name**, **by Type**, **by Size** or **by Date** (newest first). The app icons are sorted along with your files (apps count as type *Application*, with no size or date). The icons stay sorted that way as you save, rename and delete files.
 - **The Recycle Bin** keeps deleted files until you're sure. Its icon fills up when something is in it. Open it to **Restore** a file to the desktop or **Delete** it for good, or right-click it and choose **Empty Recycle Bin**.
 
 ### The apps
@@ -34,7 +34,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 | **Paint** | Draw with a pencil, eraser and paint bucket, in three brush sizes and 28 colors. Saves `.png` pictures. |
 | **Camera** | Shows your webcam. Take Picture freezes the shot; save it if you like it, or Retake. |
 | **Video Recorder** | Records up to 60 seconds of webcam video (with sound, if you allow the microphone). It plays back straight away; save it if you like it, or Record Again. |
-| **My Files** | Lists every file with its type and size. Open, rename or delete files from here too. |
+| **My Files** | Lists every file with its type and size. Click a column title to sort by it, and again to reverse. Open, rename or delete files from here too. |
 | **Minesweeper** | The classic: uncover every square that isn't a mine. Beginner, Intermediate and Expert levels, a mine counter, a timer and your best times. |
 | **Recycle Bin** | Lists deleted files, with when they were deleted. Restore them, delete them for good, or empty the bin. |
 
