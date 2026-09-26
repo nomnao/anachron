@@ -1,3 +1,5 @@
+import { trackEvent } from './analytics.js';
+
 // The file system.
 // Every file lives on the desktop and has a name, a type and its content.
 //   type 'text'  - content is the text itself (Notepad)
@@ -55,6 +57,7 @@ export function readFile(name) {
 export function writeFile(name, content, type = 'text') {
   replaceEntry({ name, type, content });
   const kept = saveFiles();
+  trackEvent('save-file');
   notify();
   return kept;
 }
@@ -159,6 +162,7 @@ export async function writeBigFile(name, blob, type, extra = {}) {
 
   replaceEntry({ name, type, big: true, size: blob.size, ...extra });
   saveFiles();
+  trackEvent('save-file');
   notify();
   return true;
 }

@@ -7,6 +7,7 @@ import {
 } from '../system/wm.js';
 import { listFiles, deleteFile, onFilesChanged, onFileRenamed } from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
+import { trackEvent } from '../system/analytics.js';
 import { showContextMenu } from './context-menu.js';
 import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
@@ -272,6 +273,7 @@ async function launchApp(app, options = {}) {
     `;
 
   openWindows.set(id, handle);
+  trackEvent(`open-${app.id}`);
   openWindow({
     id,
     title,

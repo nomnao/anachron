@@ -1,5 +1,6 @@
 import { runBoot, runShutdown } from './system/boot.js';
 import { showDesktop, hideDesktop } from './shell/desktop.js';
+import { trackEvent } from './system/analytics.js';
 
 const monitor = document.querySelector('#monitor');
 const crtScreen = document.querySelector('#crt-screen');
@@ -23,6 +24,7 @@ powerButton.addEventListener('click', () => {
 
 async function powerOn() {
   setState('booting');
+  trackEvent('power-on');
   monitor.classList.add('is-on');
 
   await runBoot(crtScreen);
@@ -34,6 +36,7 @@ async function powerOn() {
 // Shut Down from the Start menu
 async function shutDown() {
   setState('shutting-down');
+  trackEvent('shut-down');
   hideDesktop();
 
   await runShutdown(crtScreen);
