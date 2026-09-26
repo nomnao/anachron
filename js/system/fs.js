@@ -18,11 +18,21 @@ let files = loadFiles().map((file) => ({ type: 'text', ...file }));
 
 // Functions that want to hear when files change (the desktop is one)
 const listeners = [];
+// Functions that want to hear when a file gets a new name
+// (apps showing that file, so they can follow it)
+const renameListeners = [];
 
 // Returns a function that stops listening.
 export function onFilesChanged(listener) {
   listeners.push(listener);
   return () => listeners.splice(listeners.indexOf(listener), 1);
+}
+
+// listener(oldName, newName) runs after a file is renamed.
+// Returns a function that stops listening.
+export function onFileRenamed(listener) {
+  renameListeners.push(listener);
+  return () => renameListeners.splice(renameListeners.indexOf(listener), 1);
 }
 
 export function listFiles() {
@@ -56,6 +66,33 @@ export function deleteFile(name) {
 
   saveFiles();
   notify();
+}
+
+// Gives a file a new name. Returns false if there is no such file,
+// the new name is taken, or a big file couldn't be moved.
+export async function renameFile(oldName, newName) {
+  const file = files.find((f) => f.name === oldName);
+  if (!file || fileExists(newName)) return false;
+
+  // A big file's data is stored under its name, so move it
+  if (file.big) {
+    const blob = await readBigFile(oldName);
+    if (!blob) return false;
+    try {
+      await useStore('readwrite', (store) => store.put(blob, newName));
+    } catch {
+      return false;
+    }
+    deleteBig(oldName);
+  }
+
+  file.name = newName;
+  saveFiles();
+  // Apps showing the file hear first, so they already know the
+  // new name when everything else redraws
+  for (const listener of [...renameListeners]) listener(oldName, newName);
+  notify();
+  return true;
 }
 
 // Puts a file in the list, in place of any file with the same name.

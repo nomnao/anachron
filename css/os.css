@@ -1249,3 +1249,20 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* ================= RENAMING ================= */
+
+/* The text box that appears over a file's name while renaming */
+.rename-input {
+  position: absolute;
+  z-index: 20000;
+  box-sizing: border-box;
+  padding: 0 calc(var(--px) * 2);
+  border: var(--px) solid #000000;
+  outline: none;
+  background: #ffffff;
+  color: #000000;
+  font: inherit;
+  user-select: text;
+  -webkit-user-select: text;
+}

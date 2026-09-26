@@ -3,7 +3,7 @@
 // the picture, choose File > Edit in Paint.
 
 import { setUpMenuBar } from '../shell/menus.js';
-import { readFile, onFilesChanged } from '../system/fs.js';
+import { readFile, onFilesChanged, onFileRenamed } from '../system/fs.js';
 
 // context comes from the desktop:
 //   fileName - the picture to show
@@ -11,7 +11,8 @@ import { readFile, onFilesChanged } from '../system/fs.js';
 //   openFile - opens a file, here in Paint
 //   onClose  - runs something when the window closes
 export function createApp(context) {
-  const { fileName } = context;
+  // Changes if the picture is renamed
+  let { fileName } = context;
 
   const root = document.createElement('div');
   root.className = 'viewer';
@@ -49,6 +50,14 @@ export function createApp(context) {
 
   show();
   context.setTitle(`${fileName} - Image Viewer`);
+
+  // If the picture is renamed, carry on showing it under its new name
+  context.onClose(onFileRenamed((oldName, newName) => {
+    if (fileName !== oldName) return;
+    fileName = newName;
+    image.alt = newName;
+    context.setTitle(`${fileName} - Image Viewer`);
+  }));
 
   // If the picture is edited in Paint and saved, or deleted,
   // show that straight away

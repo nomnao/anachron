@@ -2,18 +2,23 @@
 
 import { APPS, LISTED_APPS, fileTypeOf } from '../app.js';
 import {
-  initWindowManager, openWindow, closeAllWindows, hasWindow, restoreWindow,
+  initWindowManager, openWindow, closeAllWindows, hasWindow, restoreWindow, renameWindow,
   setWindowTitle, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
-import { listFiles, deleteFile, onFilesChanged } from '../system/fs.js';
+import { listFiles, deleteFile, onFilesChanged, onFileRenamed } from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
 import { showContextMenu } from './context-menu.js';
 import { isDoubleClick } from './double-click.js';
+import { renameInPlace } from './rename.js';
 import { setUpStartMenu } from './start-menu.js';
 
 // Things to undo when the desktop goes away (timers, listeners
 // on the whole page), so nothing is left running after a shut down
 const cleanups = [];
+
+// Every open app window: window id -> { id }. The id changes when the
+// window's file is renamed, and apps always use the current one.
+const openWindows = new Map();
 
 // onShutDown is called after the user confirms Shut Down.
 export function showDesktop(screen, { onShutDown }) {
@@ -88,6 +93,22 @@ function createIcons(desktop) {
   renderFileIcons();
   cleanups.push(onFilesChanged(renderFileIcons));
 
+  // A renamed file's windows get new ids too, so double-clicking
+  // the renamed file brings back the window it is already open in
+  cleanups.push(onFileRenamed((oldName, newName) => {
+    for (const app of APPS) {
+      const oldId = `${app.id}:${oldName}`;
+      const newId = `${app.id}:${newName}`;
+      const handle = openWindows.get(oldId);
+      if (!handle) continue;
+
+      renameWindow(oldId, newId);
+      openWindows.delete(oldId);
+      handle.id = newId;
+      openWindows.set(newId, handle);
+    }
+  }));
+
   // Pressing anywhere that isn't an icon (the empty desktop,
   // a window, the taskbar) clears the selection
   desktop.addEventListener('pointerdown', (event) => {
@@ -96,18 +117,20 @@ function createIcons(desktop) {
     }
   });
 
+  // Keys for the selected file, unless you are typing somewhere:
   // Delete (or Backspace, since Mac laptops have no Delete key)
-  // deletes the selected file, unless you are typing somewhere
+  // deletes it, F2 renames it
   function onKeyDown(event) {
-    if (event.key !== 'Delete' && event.key !== 'Backspace') return;
+    if (!['Delete', 'Backspace', 'F2'].includes(event.key)) return;
     if (event.target.closest('input, textarea')) return;
     if (desktop.querySelector('.dialog-overlay')) return;
 
     const selected = desktop.querySelector('.desktop-icon.is-selected');
-    if (selected?.dataset.fileName) {
-      event.preventDefault();
-      confirmDelete(selected.dataset.fileName);
-    }
+    if (!selected?.dataset.fileName) return;
+
+    event.preventDefault();
+    if (event.key === 'F2') renameIcon(selected);
+    else confirmDelete(selected.dataset.fileName);
   }
   document.addEventListener('keydown', onKeyDown);
   cleanups.push(() => document.removeEventListener('keydown', onKeyDown));
@@ -139,6 +162,7 @@ function renderFileIcons() {
       selectIcon(icon);
       showContextMenu(event, [
         { label: 'Open', action: open },
+        { label: 'Rename', action: () => renameIcon(icon) },
         { label: 'Delete', action: () => confirmDelete(file.name) },
       ]);
     });
@@ -147,6 +171,18 @@ function renderFileIcons() {
   });
 
   document.querySelector('#file-icons').replaceChildren(...icons);
+}
+
+// Turns the icon's label into a text box to type a new name.
+// Afterwards the (redrawn) icon is selected again.
+async function renameIcon(icon) {
+  const oldName = icon.dataset.fileName;
+  const newName = await renameInPlace(icon.querySelector('.icon-label'), oldName);
+
+  const name = newName ?? oldName;
+  const redrawn = [...document.querySelectorAll('#file-icons .desktop-icon')]
+    .find((i) => i.dataset.fileName === name);
+  if (redrawn) selectIcon(redrawn);
 }
 
 async function confirmDelete(name) {
@@ -199,11 +235,13 @@ async function launchApp(app, options = {}) {
   // title and open the window with it.
   let title = app.title;
   const closeHandlers = [];
+  // Holds the window's current id (it changes if its file is renamed)
+  const handle = { id };
   const context = {
     fileName: options.fileName ?? null,
     setTitle(newTitle) {
       title = newTitle;
-      setWindowTitle(id, newTitle);
+      setWindowTitle(handle.id, newTitle);
     },
     // Lets an app (like My Files) open a file in its own app
     openFile,
@@ -222,6 +260,7 @@ async function launchApp(app, options = {}) {
       </div>
     `;
 
+  openWindows.set(id, handle);
   openWindow({
     id,
     title,
@@ -229,7 +268,10 @@ async function launchApp(app, options = {}) {
     width: app.width,
     height: app.height,
     content,
-    onClose: () => closeHandlers.forEach((handler) => handler()),
+    onClose: () => {
+      openWindows.delete(handle.id);
+      closeHandlers.forEach((handler) => handler());
+    },
   });
 }
 

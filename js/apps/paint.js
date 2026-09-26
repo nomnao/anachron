@@ -4,7 +4,7 @@
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
-import { readFile, writeFile } from '../system/fs.js';
+import { readFile, writeFile, onFileRenamed } from '../system/fs.js';
 
 // The picture is always this many pixels. On screen each of its
 // pixels is one "virtual pixel", so drawings look chunky and retro.
@@ -52,6 +52,7 @@ const TOOLS = [
 // context comes from the desktop:
 //   fileName - the picture to open, or null for a new, blank one
 //   setTitle - changes the window's title
+//   onClose  - runs something when the window closes
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'paint';
@@ -126,6 +127,14 @@ export function createApp(context) {
   clearCanvas(paint);
   if (paint.fileName) openPicture(paint, readFile(paint.fileName));
   updateTitle(paint);
+
+  // If the file is renamed (on the desktop or in My Files),
+  // carry on with it under its new name
+  context.onClose(onFileRenamed((oldName, newName) => {
+    if (paint.fileName !== oldName) return;
+    paint.fileName = newName;
+    updateTitle(paint);
+  }));
 
   setUpToolbox(paint);
   setUpDrawing(paint);

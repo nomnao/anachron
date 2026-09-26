@@ -94,6 +94,19 @@ export function closeWindow(id) {
   notify();
 }
 
+// Gives a window a new id, e.g. 'notepad:old.txt' -> 'notepad:new.txt'
+// when its file is renamed, so opening the file again finds it.
+export function renameWindow(oldId, newId) {
+  const win = windows.get(oldId);
+  if (!win || windows.has(newId)) return;
+
+  windows.delete(oldId);
+  win.id = newId;
+  windows.set(newId, win);
+  if (activeId === oldId) activeId = newId;
+  notify();
+}
+
 // Closes every window, e.g. when the computer shuts down,
 // so each app gets the chance to clean up.
 export function closeAllWindows() {

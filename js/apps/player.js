@@ -2,7 +2,7 @@
 // It opens when you double-click a video file.
 
 import { createVideoPlayer } from '../shell/video-player.js';
-import { listFiles, readBigFile } from '../system/fs.js';
+import { listFiles, readBigFile, onFileRenamed } from '../system/fs.js';
 
 // context comes from the desktop:
 //   fileName - the video to play
@@ -21,6 +21,15 @@ export function createApp(context) {
 
   context.setTitle(`${fileName} - Video Player`);
   context.onClose(() => player.unload());
+
+  // If the video is renamed, show its new name. (It has already
+  // been read, so it keeps playing.)
+  let shownName = fileName;
+  context.onClose(onFileRenamed((oldName, newName) => {
+    if (shownName !== oldName) return;
+    shownName = newName;
+    context.setTitle(`${newName} - Video Player`);
+  }));
 
   // Videos are read from the browser's database, which takes a moment
   const file = listFiles().find((f) => f.name === fileName);

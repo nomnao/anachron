@@ -4,11 +4,12 @@
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
-import { readFile, writeFile } from '../system/fs.js';
+import { readFile, writeFile, onFileRenamed } from '../system/fs.js';
 
 // context comes from the desktop:
 //   fileName - the file to open, or null for a new, untitled one
 //   setTitle - changes the window's title
+//   onClose  - runs something when the window closes
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'notepad';
@@ -44,6 +45,14 @@ export function createApp(context) {
     notepad.text.value = readFile(notepad.fileName) ?? '';
   }
   updateTitle(notepad);
+
+  // If the file is renamed (on the desktop or in My Files),
+  // carry on with it under its new name
+  context.onClose(onFileRenamed((oldName, newName) => {
+    if (notepad.fileName !== oldName) return;
+    notepad.fileName = newName;
+    updateTitle(notepad);
+  }));
 
   setUpMenuBar(root.querySelector('.menu-bar'), (command) => runCommand(command, notepad));
 

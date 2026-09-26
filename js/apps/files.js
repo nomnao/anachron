@@ -8,6 +8,7 @@ import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
 import { showContextMenu } from '../shell/context-menu.js';
 import { isDoubleClick } from '../shell/double-click.js';
+import { renameInPlace } from '../shell/rename.js';
 import { listFiles, deleteFile, onFilesChanged } from '../system/fs.js';
 
 // context comes from the desktop:
@@ -24,6 +25,7 @@ export function createApp(context) {
         <button class="menu-title"><u>F</u>ile</button>
         <div class="menu-items">
           <button data-command="open"><u>O</u>pen</button>
+          <button data-command="rename">Rena<u>m</u>e</button>
           <button data-command="delete"><u>D</u>elete</button>
         </div>
       </div>
@@ -66,6 +68,7 @@ export function createApp(context) {
 
   setUpMenuBar(root.querySelector('.menu-bar'), (command) => {
     if (command === 'open') openSelected(explorer);
+    if (command === 'rename') renameSelected(explorer);
     if (command === 'delete') deleteSelected(explorer);
   });
 
@@ -145,6 +148,7 @@ function setUpRows(explorer) {
     select(explorer, row.dataset.name);
     showContextMenu(event, [
       { label: 'Open', action: () => openSelected(explorer) },
+      { label: 'Rename', action: () => renameSelected(explorer) },
       { label: 'Delete', action: () => deleteSelected(explorer) },
     ]);
   });
@@ -160,6 +164,10 @@ function setUpRows(explorer) {
     if (event.key === 'Delete' || event.key === 'Backspace') {
       event.preventDefault();
       deleteSelected(explorer);
+    }
+    if (event.key === 'F2') {
+      event.preventDefault();
+      renameSelected(explorer);
     }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
@@ -182,10 +190,23 @@ function moveSelection(explorer, step) {
   rows[next].scrollIntoView({ block: 'nearest' });
 }
 
-// ---------- Open and delete ----------
+// ---------- Open, rename and delete ----------
 
 function openSelected(explorer) {
   if (explorer.selectedName) explorer.openFile(explorer.selectedName);
+}
+
+// Turns the selected file's name into a text box to type a new name.
+// Afterwards the file stays selected under its new name.
+async function renameSelected(explorer) {
+  const oldName = explorer.selectedName;
+  if (!oldName) return;
+
+  const row = [...explorer.rows.children].find((r) => r.dataset.name === oldName);
+  const newName = await renameInPlace(row.querySelector('.files-name span'), oldName);
+
+  select(explorer, newName ?? oldName);
+  explorer.root.focus({ preventScroll: true });
 }
 
 async function deleteSelected(explorer) {
