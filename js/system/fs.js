@@ -9,8 +9,12 @@ import { trackEvent } from './analytics.js';
 //                  "big files" (see the end of this file); the list
 //                  only holds their size and length.
 // Files are kept in the browser, so they survive a reload.
+//
+// Deleting a file moves it to the Recycle Bin, where it waits until
+// it is restored or deleted for good (see "The Recycle Bin" below).
 
 const STORAGE_KEY = 'anachron.files';
+const BIN_STORAGE_KEY = 'anachron.recycled';
 
 // A list of files, in the order they were first saved:
 //   { name, type, content }                 - small files
@@ -18,11 +22,18 @@ const STORAGE_KEY = 'anachron.files';
 // Files saved before types existed were all text.
 let files = loadFiles().map((file) => ({ type: 'text', ...file }));
 
+// The Recycle Bin: deleted files, each with an id of its own (two
+// deleted files can share a name) and when it was deleted:
+//   { id, deletedAt, name, type, ... }
+let recycled = loadList(BIN_STORAGE_KEY);
+
 // Functions that want to hear when files change (the desktop is one)
 const listeners = [];
 // Functions that want to hear when a file gets a new name
 // (apps showing that file, so they can follow it)
 const renameListeners = [];
+// Functions that want to hear when the Recycle Bin changes
+const binListeners = [];
 
 // Returns a function that stops listening.
 export function onFilesChanged(listener) {
@@ -35,6 +46,13 @@ export function onFilesChanged(listener) {
 export function onFileRenamed(listener) {
   renameListeners.push(listener);
   return () => renameListeners.splice(renameListeners.indexOf(listener), 1);
+}
+
+// listener(items) runs whenever something goes into or out of the
+// Recycle Bin. Returns a function that stops listening.
+export function onRecycleBinChanged(listener) {
+  binListeners.push(listener);
+  return () => binListeners.splice(binListeners.indexOf(listener), 1);
 }
 
 export function listFiles() {
@@ -62,6 +80,28 @@ export function writeFile(name, content, type = 'text') {
   return kept;
 }
 
+// Moves a file to the Recycle Bin. A big file's data moves to a
+// place of its own, so a new file with the same name can't touch it.
+export async function recycleFile(name) {
+  const file = files.find((f) => f.name === name);
+  if (!file) return;
+
+  const item = { ...file, id: newBinId(), deletedAt: Date.now() };
+  if (file.big && !(await moveBig(name, binKey(item.id)))) {
+    // Its data couldn't be moved, so it can't come back later
+    deleteFile(name);
+    return;
+  }
+
+  files = files.filter((f) => f !== file);
+  recycled.push(item);
+  saveFiles();
+  saveBin();
+  notify();
+  notifyBin();
+}
+
+// Deletes a file for good, without going through the Recycle Bin
 export function deleteFile(name) {
   const file = files.find((f) => f.name === name);
   files = files.filter((f) => f.name !== name);
@@ -78,16 +118,7 @@ export async function renameFile(oldName, newName) {
   if (!file || fileExists(newName)) return false;
 
   // A big file's data is stored under its name, so move it
-  if (file.big) {
-    const blob = await readBigFile(oldName);
-    if (!blob) return false;
-    try {
-      await useStore('readwrite', (store) => store.put(blob, newName));
-    } catch {
-      return false;
-    }
-    deleteBig(oldName);
-  }
+  if (file.big && !(await moveBig(oldName, newName))) return false;
 
   file.name = newName;
   saveFiles();
@@ -115,14 +146,76 @@ function notify() {
   for (const listener of listeners) listener(listFiles());
 }
 
+// ---------- The Recycle Bin ----------
+
+export function listRecycled() {
+  return recycled.map((item) => ({ ...item }));
+}
+
+// Puts a deleted file back, replacing any file that has taken its
+// name since. Returns false if it couldn't be brought back.
+export async function restoreFile(id) {
+  const item = recycled.find((i) => i.id === id);
+  if (!item) return false;
+
+  if (item.big && !(await moveBig(binKey(id), item.name))) return false;
+
+  const { id: _id, deletedAt: _deletedAt, ...file } = item;
+  recycled = recycled.filter((i) => i !== item);
+  replaceEntry(file);
+  saveFiles();
+  saveBin();
+  notify();
+  notifyBin();
+  return true;
+}
+
+// Deletes one file in the Recycle Bin for good
+export function deleteRecycled(id) {
+  const item = recycled.find((i) => i.id === id);
+  if (!item) return;
+
+  if (item.big) deleteBig(binKey(id));
+  recycled = recycled.filter((i) => i !== item);
+  saveBin();
+  notifyBin();
+}
+
+// Deletes everything in the Recycle Bin for good
+export function emptyRecycleBin() {
+  for (const item of recycled) {
+    if (item.big) deleteBig(binKey(item.id));
+  }
+  recycled = [];
+  saveBin();
+  notifyBin();
+}
+
+function notifyBin() {
+  for (const listener of [...binListeners]) listener(listRecycled());
+}
+
+function newBinId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Where a recycled big file's data is kept
+function binKey(id) {
+  return `recycled:${id}`;
+}
+
 // ---------- Keeping files in the browser ----------
 
 // localStorage can be missing or blocked (e.g. private browsing).
 // Then files still work until the page is closed; they just aren't kept.
 
 function loadFiles() {
+  return loadList(STORAGE_KEY);
+}
+
+function loadList(key) {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) ?? [];
+    return JSON.parse(localStorage.getItem(key)) ?? [];
   } catch {
     return [];
   }
@@ -130,8 +223,16 @@ function loadFiles() {
 
 // Returns true if the files were stored.
 function saveFiles() {
+  return saveList(STORAGE_KEY, files);
+}
+
+function saveBin() {
+  return saveList(BIN_STORAGE_KEY, recycled);
+}
+
+function saveList(key, list) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(files));
+    localStorage.setItem(key, JSON.stringify(list));
     return true;
   } catch {
     // Blocked, or full (pictures take far more room than text).
@@ -174,6 +275,20 @@ export async function readBigFile(name) {
   } catch {
     return null;
   }
+}
+
+// Moves a big file's data from one key to another.
+// Returns false if it couldn't be moved.
+async function moveBig(fromKey, toKey) {
+  const blob = await readBigFile(fromKey);
+  if (!blob) return false;
+  try {
+    await useStore('readwrite', (store) => store.put(blob, toKey));
+  } catch {
+    return false;
+  }
+  deleteBig(fromKey);
+  return true;
 }
 
 function deleteBig(name) {

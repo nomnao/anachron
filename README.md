@@ -23,6 +23,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 - **The Start menu** lists every app, and has **Shut Down...** at the bottom.
 - **Saved files** appear as icons on the desktop. Double-click one to open it.
 - **Right-click** a file for **Open**, **Rename** and **Delete**.
+- **The Recycle Bin** keeps deleted files until you're sure. Its icon fills up when something is in it. Open it to **Restore** a file to the desktop or **Delete** it for good, or right-click it and choose **Empty Recycle Bin**.
 
 ### The apps
 
@@ -33,6 +34,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 | **Camera** | Shows your webcam. Take Picture freezes the shot; save it if you like it, or Retake. |
 | **Video Recorder** | Records up to 60 seconds of webcam video (with sound, if you allow the microphone). It plays back straight away; save it if you like it, or Record Again. |
 | **My Files** | Lists every file with its type and size. Open, rename or delete files from here too. |
+| **Recycle Bin** | Lists deleted files, with when they were deleted. Restore them, delete them for good, or empty the bin. |
 
 Double-clicking a saved file opens the right program:
 
@@ -56,9 +58,9 @@ Photos and videos have the same chunky-pixel look as Paint, and a photo is exact
 | Ctrl+S / Cmd+S | Save in Notepad, Paint, Camera and Video Recorder |
 | Ctrl+Z / Cmd+Z | Undo in Paint |
 | F2 | Rename the selected file (desktop or My Files) |
-| Delete (or Backspace) | Delete the selected file, after asking |
-| Enter | Open the selected file in My Files |
-| ↑ / ↓ | Move through the list in My Files |
+| Delete (or Backspace) | Send the selected file to the Recycle Bin, after asking (in the Recycle Bin: delete it for good) |
+| Enter | Open the selected file in My Files, or restore it in the Recycle Bin |
+| ↑ / ↓ | Move through the list in My Files and the Recycle Bin |
 | Esc | Close the Start menu or a dialog, or cancel renaming |
 
 ## Where your files are kept
@@ -69,6 +71,7 @@ This means:
 
 - Files are still there after you close the page or restart the computer.
 - Each browser has its own files. Chrome and Safari, or another computer, won't see each other's.
+- Files in the Recycle Bin still take up room until you empty it.
 - Clearing your browser's site data for this page deletes the files.
 - Private or incognito windows forget everything when they close.
 

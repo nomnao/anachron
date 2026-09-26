@@ -291,11 +291,13 @@
   color: #ffffff;
 }
 
-/* The drop-down list: a raised grey box, hidden until its menu opens */
+/* The drop-down list: a raised grey box, hidden until its menu opens.
+   It sits above everything in the window, including the sticky
+   column titles in My Files and the Recycle Bin. */
 .menu-items {
   display: none;
   position: absolute;
-  z-index: 1;
+  z-index: 2;
   top: 100%;
   left: 0;
   min-width: calc(var(--px) * 120);
@@ -324,6 +326,13 @@
 .menu-items button:hover {
   background: #000080;
   color: #ffffff;
+}
+
+/* A grooved line between groups of items */
+.menu-separator {
+  margin: calc(var(--px) * 3) var(--px);
+  border-top: var(--px) solid #808080;
+  border-bottom: var(--px) solid #ffffff;
 }
 
 /* ================= NOTEPAD ================= */
@@ -911,6 +920,14 @@
   margin: calc(var(--px) * 12);
   color: #808080;
   text-align: center;
+}
+
+/* ================= RECYCLE BIN ================= */
+
+/* The same list as My Files, with Date Deleted in place of Type */
+.recycle-bin .files-header,
+.recycle-bin .files-row {
+  grid-template-columns: 1fr calc(var(--px) * 120) calc(var(--px) * 50);
 }
 
 /* ----- Status bar: sunken boxes along the bottom ----- */
