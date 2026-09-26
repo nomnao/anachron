@@ -7,7 +7,7 @@
 // open them and you can draw on them.
 
 import { setUpMenuBar } from '../shell/menus.js';
-import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
+import { showConfirmDialog, showSaveAsDialog, showSaveChangesDialog } from '../shell/dialogs.js';
 import {
   FRAME_WIDTH, FRAME_HEIGHT, openWebcam, explainWebcamError, drawMirroredFrame, stopStream,
 } from '../shell/webcam.js';
@@ -18,6 +18,7 @@ const SAVE_KEYS = /Mac|iPhone|iPad/.test(navigator.platform) ? 'Cmd+S' : 'Ctrl+S
 
 // context comes from the desktop:
 //   onClose - runs something when the window closes
+//   beforeClose - lets Camera ask about an unsaved picture first
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'camera';
@@ -60,6 +61,8 @@ export function createApp(context) {
     closed: false,
     // The picture just taken, as a PNG data URL; null while live
     photo: null,
+    // Whether that picture has been saved
+    saved: false,
   };
   // Needed so phones play the webcam inside the page, silently
   camera.video.muted = true;
@@ -85,6 +88,9 @@ export function createApp(context) {
   // Turn the webcam off when the window closes (or the computer shuts
   // down), otherwise its light would stay on
   context.onClose(() => stopCamera(camera));
+
+  // Closing with an unsaved picture on screen asks to save it first
+  context.beforeClose(() => askToSave(camera));
 
   startCamera(camera);
   return root;
@@ -143,6 +149,7 @@ function takePicture(camera) {
   cancelAnimationFrame(camera.frame);
   drawMirroredFrame(camera.ctx, camera.video);
   camera.photo = camera.canvas.toDataURL('image/png');
+  camera.saved = false;
 
   flash(camera);
   showButtons(camera, ['retake', 'save']);
@@ -180,10 +187,25 @@ function flash(camera) {
 
 // ---------- Saving ----------
 
+// If a picture was taken but not saved, asks whether to save it.
+// Gives back true to carry on (saved, or No), false to stop.
+async function askToSave(camera) {
+  if (!camera.photo || camera.saved) return true;
+
+  const choice = await showSaveChangesDialog(camera.root, {
+    title: 'Camera',
+    message: 'Do you want to save this picture?',
+  });
+  if (choice === 'discard') return true;
+  if (choice === 'cancel') return false;
+  return savePicture(camera);
+}
+
 // Asks for a name, then saves the picture on screen.
 // Before a picture has been taken there is nothing to save.
+// Gives back true if it was saved.
 async function savePicture(camera) {
-  if (!camera.photo) return;
+  if (!camera.photo) return false;
 
   const photo = camera.photo;
   const name = await showSaveAsDialog(camera.root, {
@@ -191,9 +213,10 @@ async function savePicture(camera) {
     extension: '.png',
   });
   camera.root.focus({ preventScroll: true });
-  if (!name) return;
+  if (!name) return false;
 
   const kept = writeFile(name, photo, 'image');
+  camera.saved = true;
   setStatus(camera, `Saved ${name}`);
 
   if (!kept) {
@@ -203,6 +226,7 @@ async function savePicture(camera) {
       cancelLabel: null,
     });
   }
+  return true;
 }
 
 // A suggested name: photo1.png, or photo2.png if that is taken, and so on

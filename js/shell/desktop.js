@@ -2,7 +2,7 @@
 
 import { APPS, LISTED_APPS, fileTypeOf } from '../app.js';
 import {
-  initWindowManager, openWindow, closeAllWindows, hasWindow, restoreWindow, renameWindow,
+  initWindowManager, openWindow, closeAllWindows, requestCloseAll, hasWindow, restoreWindow, renameWindow,
   setWindowTitle, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
 import { listFiles, deleteFile, onFilesChanged, onFileRenamed } from '../system/fs.js';
@@ -71,7 +71,11 @@ async function confirmShutDown(desktop, onShutDown) {
     cancelLabel: 'No',
   });
 
-  if (confirmed) onShutDown();
+  if (!confirmed) return;
+
+  // Each window with unsaved work asks about it first;
+  // Cancel on any of them stops the shut down
+  if (await requestCloseAll()) onShutDown();
 }
 
 // ---------- Icons ----------
@@ -235,6 +239,7 @@ async function launchApp(app, options = {}) {
   // title and open the window with it.
   let title = app.title;
   const closeHandlers = [];
+  let beforeClose = null;
   // Holds the window's current id (it changes if its file is renamed)
   const handle = { id };
   const context = {
@@ -248,6 +253,12 @@ async function launchApp(app, options = {}) {
     // Lets an app run something when its window closes
     onClose(handler) {
       closeHandlers.push(handler);
+    },
+    // Lets an app decide whether its window may close, e.g. by
+    // asking about unsaved changes. handler gives back (or resolves
+    // to) true to close, false to stay open.
+    beforeClose(handler) {
+      beforeClose = handler;
     },
   };
 
@@ -268,6 +279,7 @@ async function launchApp(app, options = {}) {
     width: app.width,
     height: app.height,
     content,
+    beforeClose: () => (beforeClose ? beforeClose() : true),
     onClose: () => {
       openWindows.delete(handle.id);
       closeHandlers.forEach((handler) => handler());

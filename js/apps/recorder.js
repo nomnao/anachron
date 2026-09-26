@@ -8,7 +8,7 @@
 // picture you see, so it looks just like the preview.
 
 import { setUpMenuBar } from '../shell/menus.js';
-import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
+import { showConfirmDialog, showSaveAsDialog, showSaveChangesDialog } from '../shell/dialogs.js';
 import { createVideoPlayer, formatTime } from '../shell/video-player.js';
 import {
   FRAME_WIDTH, FRAME_HEIGHT, openWebcam, explainWebcamError, drawMirroredFrame, stopStream,
@@ -24,6 +24,7 @@ const SAVE_KEYS = /Mac|iPhone|iPad/.test(navigator.platform) ? 'Cmd+S' : 'Ctrl+S
 
 // context comes from the desktop:
 //   onClose - runs something when the window closes
+//   beforeClose - lets the recorder ask about an unsaved video first
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'recorder';
@@ -73,9 +74,11 @@ export function createApp(context) {
     chunks: [],
     startedAt: 0,
     timer: null,
-    // After recording: the video and its length in seconds
+    // After recording: the video, its length in seconds,
+    // and whether it has been saved
     clip: null,
     seconds: 0,
+    saved: false,
   };
   // Needed so phones play the webcam inside the page, silently
   recorder.video.muted = true;
@@ -103,6 +106,9 @@ export function createApp(context) {
   // When the window closes (or the computer shuts down): stop any
   // recording, let go of the video, and turn the webcam off
   context.onClose(() => shutDown(recorder));
+
+  // Closing mid-recording, or with an unsaved video, asks first
+  context.beforeClose(() => askToSave(recorder));
 
   startWebcam(recorder);
   return root;
@@ -228,6 +234,7 @@ function showPlayback(recorder) {
   cancelAnimationFrame(recorder.frame);
 
   recorder.clip = new Blob(recorder.chunks, { type: recorder.mediaRecorder.mimeType });
+  recorder.saved = false;
   recorder.chunks = [];
   recorder.player.load(recorder.clip, recorder.seconds);
 
@@ -246,10 +253,35 @@ function pickVideoFormat() {
 
 // ---------- Saving ----------
 
+// Before closing: while recording, asks whether to stop and throw the
+// recording away; with an unsaved video, asks whether to save it.
+// Gives back true to carry on and close, false to stay open.
+async function askToSave(recorder) {
+  if (recorder.mediaRecorder?.state === 'recording') {
+    return showConfirmDialog(recorder.root, {
+      title: 'Video Recorder',
+      message: 'Stop recording? The video will not be kept.',
+      confirmLabel: 'Yes',
+      cancelLabel: 'No',
+    });
+  }
+
+  if (!recorder.clip || recorder.saved) return true;
+
+  const choice = await showSaveChangesDialog(recorder.root, {
+    title: 'Video Recorder',
+    message: 'Do you want to save this video?',
+  });
+  if (choice === 'discard') return true;
+  if (choice === 'cancel') return false;
+  return saveVideo(recorder);
+}
+
 // Asks for a name, then saves the video on screen.
 // Before a video has been recorded there is nothing to save.
+// Gives back true if it was saved.
 async function saveVideo(recorder) {
-  if (!recorder.clip) return;
+  if (!recorder.clip) return false;
 
   const { clip, seconds } = recorder;
   const extension = clip.type.includes('mp4') ? '.mp4' : '.webm';
@@ -258,21 +290,23 @@ async function saveVideo(recorder) {
     extension,
   });
   recorder.root.focus({ preventScroll: true });
-  if (!name) return;
+  if (!name) return false;
 
   setStatus(recorder, `Saving ${name}...`);
   const kept = await writeBigFile(name, clip, 'video', { duration: seconds });
 
   if (kept) {
+    recorder.saved = true;
     setStatus(recorder, `Saved ${name}`);
   } else {
     setStatus(recorder, 'Not saved');
-    showConfirmDialog(recorder.root, {
+    await showConfirmDialog(recorder.root, {
       title: 'Video Recorder',
       message: `There is no room to store ${name}.`,
       cancelLabel: null,
     });
   }
+  return kept;
 }
 
 // A suggested name: video1.webm, or video2.webm if that is taken...

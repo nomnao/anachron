@@ -3,13 +3,14 @@
 // file opens it here again.
 
 import { setUpMenuBar } from '../shell/menus.js';
-import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
+import { showConfirmDialog, showSaveAsDialog, showSaveChangesDialog } from '../shell/dialogs.js';
 import { readFile, writeFile, onFileRenamed } from '../system/fs.js';
 
 // context comes from the desktop:
 //   fileName - the file to open, or null for a new, untitled one
 //   setTitle - changes the window's title
 //   onClose  - runs something when the window closes
+//   beforeClose - lets Notepad ask about unsaved changes first
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'notepad';
@@ -39,6 +40,8 @@ export function createApp(context) {
     text: root.querySelector('.notepad-text'),
     fileName: context.fileName,
     setTitle: context.setTitle,
+    // True when there is typing that hasn't been saved yet
+    changed: false,
   };
 
   if (notepad.fileName) {
@@ -56,6 +59,11 @@ export function createApp(context) {
 
   setUpMenuBar(root.querySelector('.menu-bar'), (command) => runCommand(command, notepad));
 
+  notepad.text.addEventListener('input', () => { notepad.changed = true; });
+
+  // Closing with unsaved typing asks to save it first
+  context.beforeClose(() => askToSave(notepad));
+
   // Ctrl+S (Cmd+S on a Mac) saves, instead of saving the web page
   notepad.text.addEventListener('keydown', (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
@@ -71,9 +79,8 @@ function runCommand(command, notepad) {
   const { text } = notepad;
 
   if (command === 'new') {
-    text.value = '';
-    notepad.fileName = null;
-    updateTitle(notepad);
+    startNewFile(notepad);
+    return;
   }
 
   if (command === 'save') {
@@ -96,9 +103,21 @@ function runCommand(command, notepad) {
     const stamp = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
       + ' ' + now.toLocaleDateString('en-US');
     text.setRangeText(stamp, text.selectionStart, text.selectionEnd, 'end');
+    notepad.changed = true;
   }
 
   text.focus();
+}
+
+// New: an empty, untitled page (after asking about unsaved typing)
+async function startNewFile(notepad) {
+  if (await askToSave(notepad)) {
+    notepad.text.value = '';
+    notepad.fileName = null;
+    notepad.changed = false;
+    updateTitle(notepad);
+  }
+  notepad.text.focus();
 }
 
 // "letter.txt - Notepad", or "Untitled - Notepad" before the first save
@@ -108,14 +127,28 @@ function updateTitle(notepad) {
 
 // ---------- Saving ----------
 
+// If there is unsaved typing, asks "Save changes?".
+// Gives back true to carry on (saved, or No), false to stop (Cancel,
+// or the Save As box was cancelled).
+async function askToSave(notepad) {
+  if (!notepad.changed) return true;
+
+  const choice = await showSaveChangesDialog(notepad.root, {
+    title: 'Notepad',
+    fileName: notepad.fileName ?? 'Untitled',
+  });
+  if (choice === 'discard') return true;
+  if (choice === 'cancel') return false;
+  return save(notepad);
+}
+
 // A file that already has a name is saved straight away;
-// a new one asks for a name first.
-function save(notepad) {
-  if (notepad.fileName) {
-    writeAndCheck(notepad, notepad.fileName);
-  } else {
-    saveAs(notepad);
-  }
+// a new one asks for a name first. Gives back true if it was saved.
+async function save(notepad) {
+  if (!notepad.fileName) return saveAs(notepad);
+
+  writeAndCheck(notepad, notepad.fileName);
+  return true;
 }
 
 async function saveAs(notepad) {
@@ -130,10 +163,12 @@ async function saveAs(notepad) {
     writeAndCheck(notepad, name);
   }
   notepad.text.focus();
+  return Boolean(name);
 }
 
 // Saves, and says so if the browser had no room to keep the file.
 function writeAndCheck(notepad, name) {
+  notepad.changed = false;
   if (!writeFile(name, notepad.text.value, 'text')) {
     showConfirmDialog(notepad.root, {
       title: 'Notepad',

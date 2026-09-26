@@ -3,7 +3,7 @@
 // file opens it here again.
 
 import { setUpMenuBar } from '../shell/menus.js';
-import { showConfirmDialog, showSaveAsDialog } from '../shell/dialogs.js';
+import { showConfirmDialog, showSaveAsDialog, showSaveChangesDialog } from '../shell/dialogs.js';
 import { readFile, writeFile, onFileRenamed } from '../system/fs.js';
 
 // The picture is always this many pixels. On screen each of its
@@ -53,6 +53,7 @@ const TOOLS = [
 //   fileName - the picture to open, or null for a new, blank one
 //   setTitle - changes the window's title
 //   onClose  - runs something when the window closes
+//   beforeClose - lets Paint ask about unsaved changes first
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'paint';
@@ -122,6 +123,8 @@ export function createApp(context) {
     size: SIZES[0],
     color: '#000000',
     undoSteps: [],
+    // True when the picture has changes that haven't been saved yet
+    changed: false,
   };
 
   clearCanvas(paint);
@@ -135,6 +138,9 @@ export function createApp(context) {
     paint.fileName = newName;
     updateTitle(paint);
   }));
+
+  // Closing with unsaved changes asks to save them first
+  context.beforeClose(() => askToSave(paint));
 
   setUpToolbox(paint);
   setUpDrawing(paint);
@@ -160,15 +166,21 @@ export function createApp(context) {
 }
 
 function runCommand(command, paint) {
-  if (command === 'new') {
-    rememberForUndo(paint);
-    clearCanvas(paint);
-    paint.fileName = null;
-    updateTitle(paint);
-  }
+  if (command === 'new') startNewPicture(paint);
   if (command === 'save') save(paint);
   if (command === 'save-as') saveAs(paint);
   if (command === 'undo') undo(paint);
+}
+
+// New: a blank, untitled picture (after asking about unsaved changes)
+async function startNewPicture(paint) {
+  if (!(await askToSave(paint))) return;
+
+  rememberForUndo(paint);
+  clearCanvas(paint);
+  paint.fileName = null;
+  paint.changed = false;
+  updateTitle(paint);
 }
 
 // "sunset.png - Paint", or "untitled - Paint" before the first save
@@ -337,15 +349,19 @@ function clearCanvas(paint) {
 
 // ---------- Undo ----------
 
-// Takes a copy of the picture before each change
+// Takes a copy of the picture before each change.
+// Every change goes through here, so it also marks the picture changed.
 function rememberForUndo(paint) {
+  paint.changed = true;
   paint.undoSteps.push(paint.ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
   if (paint.undoSteps.length > MAX_UNDO) paint.undoSteps.shift();
 }
 
 function undo(paint) {
   const previous = paint.undoSteps.pop();
-  if (previous) paint.ctx.putImageData(previous, 0, 0);
+  if (!previous) return;
+  paint.ctx.putImageData(previous, 0, 0);
+  paint.changed = true;
 }
 
 // ---------- Opening and saving ----------
@@ -358,12 +374,28 @@ function openPicture(paint, dataUrl) {
   image.src = dataUrl;
 }
 
-function save(paint) {
-  if (paint.fileName) {
-    writeAndCheck(paint, paint.fileName);
-  } else {
-    saveAs(paint);
-  }
+// If there are unsaved changes, asks "Save changes?".
+// Gives back true to carry on (saved, or No), false to stop (Cancel,
+// or the Save As box was cancelled).
+async function askToSave(paint) {
+  if (!paint.changed) return true;
+
+  const choice = await showSaveChangesDialog(paint.root, {
+    title: 'Paint',
+    fileName: paint.fileName ?? 'untitled',
+  });
+  if (choice === 'discard') return true;
+  if (choice === 'cancel') return false;
+  return save(paint);
+}
+
+// A picture that already has a name is saved straight away;
+// a new one asks for a name first. Gives back true if it was saved.
+async function save(paint) {
+  if (!paint.fileName) return saveAs(paint);
+
+  writeAndCheck(paint, paint.fileName);
+  return true;
 }
 
 async function saveAs(paint) {
@@ -378,11 +410,13 @@ async function saveAs(paint) {
     writeAndCheck(paint, name);
   }
   paint.root.focus({ preventScroll: true });
+  return Boolean(name);
 }
 
 // Saves, and says so if the browser had no room to keep the file.
 function writeAndCheck(paint, name) {
   const picture = paint.canvas.toDataURL('image/png');
+  paint.changed = false;
   if (!writeFile(name, picture, 'image')) {
     showConfirmDialog(paint.root, {
       title: 'Paint',

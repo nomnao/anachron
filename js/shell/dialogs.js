@@ -14,44 +14,65 @@ import { fileExists } from '../system/fs.js';
 //   });
 //
 // With cancelLabel: null there is only one button, for simple messages.
-export function showConfirmDialog(container, { title, message, confirmLabel = 'OK', cancelLabel = 'Cancel' }) {
+export async function showConfirmDialog(container, { title, message, confirmLabel = 'OK', cancelLabel = 'Cancel' }) {
+  const choices = [{ label: confirmLabel, value: 'confirm' }];
+  if (cancelLabel) choices.push({ label: cancelLabel, value: 'cancel' });
+
+  const choice = await showChoiceDialog(container, { title, message, choices, escapeValue: 'cancel' });
+  return choice === 'confirm';
+}
+
+// "Do you want to save changes to letter.txt?" with Yes, No and Cancel.
+// A different question can be passed as message.
+// Gives back 'save', 'discard' or 'cancel'.
+export function showSaveChangesDialog(container, { title, fileName, message }) {
+  return showChoiceDialog(container, {
+    title,
+    message: message ?? `Do you want to save changes to ${fileName}?`,
+    choices: [
+      { label: 'Yes', value: 'save' },
+      { label: 'No', value: 'discard' },
+      { label: 'Cancel', value: 'cancel' },
+    ],
+    escapeValue: 'cancel',
+  });
+}
+
+// A message with a row of buttons. Gives back the value of the button
+// pressed, or escapeValue if Escape was pressed. The first button has
+// focus, so Enter presses it.
+function showChoiceDialog(container, { title, message, choices, escapeValue }) {
   return new Promise((resolve) => {
     const overlay = createDialog(title, `
       <p class="dialog-message"></p>
-      <div class="dialog-buttons">
-        <button class="push-button" data-choice="confirm"></button>
-        <button class="push-button" data-choice="cancel"></button>
-      </div>
+      <div class="dialog-buttons"></div>
     `);
 
     // The message can contain file names people typed,
     // so all the words are set as plain text, never HTML
     overlay.querySelector('.dialog-message').textContent = message;
 
-    const confirmButton = overlay.querySelector('[data-choice="confirm"]');
-    const cancelButton = overlay.querySelector('[data-choice="cancel"]');
-    confirmButton.textContent = confirmLabel;
-    if (cancelLabel) {
-      cancelButton.textContent = cancelLabel;
-    } else {
-      cancelButton.remove();
-    }
-
     function finish(result) {
       overlay.remove();
       resolve(result);
     }
 
-    confirmButton.addEventListener('click', () => finish(true));
-    cancelButton.addEventListener('click', () => finish(false));
+    const buttons = choices.map(({ label, value }) => {
+      const button = document.createElement('button');
+      button.className = 'push-button';
+      button.dataset.choice = value;
+      button.textContent = label;
+      button.addEventListener('click', () => finish(value));
+      return button;
+    });
+    overlay.querySelector('.dialog-buttons').append(...buttons);
+
     overlay.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') finish(false);
+      if (event.key === 'Escape') finish(escapeValue);
     });
 
     container.append(overlay);
-
-    // Enter presses the focused button, so Enter means "yes"
-    confirmButton.focus();
+    buttons[0].focus();
   });
 }
 

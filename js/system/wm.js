@@ -7,7 +7,8 @@ const DESKTOP_WIDTH = 640;
 const TASKBAR_HEIGHT = 28;
 const DOUBLE_CLICK_MS = 450;
 
-// window id -> { id, title, icon, x, y, width, height, z, minimized, maximized, el, onClose }
+// window id -> { id, title, icon, x, y, width, height, z, minimized, maximized, el,
+//                 onClose, beforeClose, closing }
 const windows = new Map();
 let activeId = null;
 let desktop = null;
@@ -49,9 +50,12 @@ function notify() {
 
 // ---------- Opening and closing ----------
 
+// beforeClose (optional) runs when someone asks to close the window.
+// It can ask about unsaved changes, and gives back (or resolves to)
+// false to keep the window open.
 // onClose (optional) runs when the window closes, so an app can
 // stop anything it started, like a webcam.
-export function openWindow({ id, title, icon, width, height, content, onClose }) {
+export function openWindow({ id, title, icon, width, height, content, onClose, beforeClose }) {
   // Only one window per app for now: if it is already open, bring it back
   if (windows.has(id)) {
     restoreWindow(id);
@@ -64,7 +68,7 @@ export function openWindow({ id, title, icon, width, height, content, onClose })
   const win = {
     id, title, icon,
     x: 110 + offset, y: 20 + offset, width, height,
-    z: 0, minimized: false, maximized: false, el: null, onClose,
+    z: 0, minimized: false, maximized: false, el: null, onClose, beforeClose, closing: false,
   };
 
   win.el = createWindowElement(win, content);
@@ -105,6 +109,34 @@ export function renameWindow(oldId, newId) {
   windows.set(newId, win);
   if (activeId === oldId) activeId = newId;
   notify();
+}
+
+// Asks the window's app first (it may want to save), then closes it.
+// Gives back true if the window closed.
+export async function requestClose(id) {
+  const win = windows.get(id);
+  if (!win) return true;
+  // Already asking (e.g. the close button was clicked twice)
+  if (win.closing) return false;
+
+  win.closing = true;
+  const ok = win.beforeClose ? await win.beforeClose() : true;
+  win.closing = false;
+
+  if (ok) closeWindow(win.id);
+  return ok;
+}
+
+// Asks every window in turn, e.g. before shutting down. Each one is
+// brought to the front first, so you can see what is being asked
+// about. Stops (and gives back false) if any window stays open.
+export async function requestCloseAll() {
+  for (const win of [...windows.values()]) {
+    if (!windows.has(win.id)) continue;
+    if (win.beforeClose) restoreWindow(win.id);
+    if (!(await requestClose(win.id))) return false;
+  }
+  return true;
 }
 
 // Closes every window, e.g. when the computer shuts down,
@@ -251,7 +283,7 @@ function createWindowElement(win, content) {
 
   el.querySelector('[data-action="minimize"]').addEventListener('click', () => minimizeWindow(win.id));
   el.querySelector('[data-action="maximize"]').addEventListener('click', () => toggleMaximize(win.id));
-  el.querySelector('[data-action="close"]').addEventListener('click', () => closeWindow(win.id));
+  el.querySelector('[data-action="close"]').addEventListener('click', () => requestClose(win.id));
 
   // Title bar: drag to move, double-click to maximize / restore.
   // We time the double-click ourselves so it also works with a finger.
