@@ -1,8 +1,8 @@
 // The desktop: icons, taskbar, Start menu and clock.
 
-import { APPS, fileTypeOf } from '../app.js';
+import { APPS, LISTED_APPS, fileTypeOf } from '../app.js';
 import {
-  initWindowManager, openWindow, hasWindow, restoreWindow,
+  initWindowManager, openWindow, closeAllWindows, hasWindow, restoreWindow,
   setWindowTitle, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
 import { listFiles, deleteFile, onFilesChanged } from '../system/fs.js';
@@ -40,7 +40,7 @@ export function showDesktop(screen, { onShutDown }) {
   onWindowsChanged(renderTaskbarButtons);
 
   cleanups.push(setUpStartMenu(desktop, {
-    apps: APPS,
+    apps: LISTED_APPS,
     onLaunch: launchApp,
     onShutDown: () => confirmShutDown(desktop, onShutDown),
   }));
@@ -53,6 +53,7 @@ export function showDesktop(screen, { onShutDown }) {
 // Stops everything the desktop started. The screen itself is
 // cleared by whoever shows the next thing on it.
 export function hideDesktop() {
+  closeAllWindows();
   for (const cleanup of cleanups) cleanup();
   cleanups.length = 0;
 }
@@ -73,7 +74,7 @@ async function confirmShutDown(desktop, onShutDown) {
 function createIcons(desktop) {
   const iconArea = desktop.querySelector('#desktop-icons');
 
-  for (const app of APPS) {
+  for (const app of LISTED_APPS) {
     iconArea.append(createIcon(app.icon, app.title, () => launchApp(app)));
   }
 
@@ -171,12 +172,13 @@ function selectIcon(icon) {
   }
 }
 
-// Opens a file in the app that belongs to its type
-function openFile(name) {
+// Opens a file in the app that belongs to its type, or in
+// another app when appId is given (e.g. a picture in Paint)
+function openFile(name, appId) {
   const file = listFiles().find((f) => f.name === name);
   if (!file) return;
 
-  const app = APPS.find((a) => a.id === fileTypeOf(file).appId);
+  const app = APPS.find((a) => a.id === (appId ?? fileTypeOf(file).appId));
   launchApp(app, { fileName: name });
 }
 
@@ -196,6 +198,7 @@ async function launchApp(app, options = {}) {
   // while it starts up, before its window exists; we keep that
   // title and open the window with it.
   let title = app.title;
+  const closeHandlers = [];
   const context = {
     fileName: options.fileName ?? null,
     setTitle(newTitle) {
@@ -204,6 +207,10 @@ async function launchApp(app, options = {}) {
     },
     // Lets an app (like My Files) open a file in its own app
     openFile,
+    // Lets an app run something when its window closes
+    onClose(handler) {
+      closeHandlers.push(handler);
+    },
   };
 
   const content = app.load
@@ -222,6 +229,7 @@ async function launchApp(app, options = {}) {
     width: app.width,
     height: app.height,
     content,
+    onClose: () => closeHandlers.forEach((handler) => handler()),
   });
 }
 

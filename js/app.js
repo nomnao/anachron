@@ -3,6 +3,8 @@
 // and the window manager uses it to open windows.
 // An app with "load" has been built: load() fetches its module,
 // whose createApp() returns what goes inside the window.
+// An app with "listed: false" only opens files, so it has no
+// desktop icon and is not in the Start menu.
 
 export const APPS = [
   { id: 'files',    title: 'My Files',       icon: 'assets/icons/files.svg',    width: 380, height: 250,
@@ -11,15 +13,21 @@ export const APPS = [
     load: () => import('./apps/notepad.js') },
   { id: 'paint',    title: 'Paint',          icon: 'assets/icons/paint.svg',    width: 440, height: 330,
     load: () => import('./apps/paint.js') },
-  { id: 'camera',   title: 'Camera',         icon: 'assets/icons/camera.svg',   width: 300, height: 260 },
+  { id: 'camera',   title: 'Camera',         icon: 'assets/icons/camera.svg',   width: 384, height: 310,
+    load: () => import('./apps/camera.js') },
   { id: 'recorder', title: 'Video Recorder', icon: 'assets/icons/recorder.svg', width: 300, height: 280 },
+  { id: 'viewer',   title: 'Image Viewer',   icon: 'assets/icons/image-file.svg', width: 384, height: 280,
+    load: () => import('./apps/viewer.js'), listed: false },
 ];
+
+// The apps people can start themselves (desktop icons, Start menu)
+export const LISTED_APPS = APPS.filter((app) => app.listed !== false);
 
 // Every type of file: its icon, the name My Files shows for it,
 // and which app opens it
 export const FILE_TYPES = {
   text:  { icon: 'assets/icons/text-file.svg',  label: 'Text Document', appId: 'notepad' },
-  image: { icon: 'assets/icons/image-file.svg', label: 'PNG Image',     appId: 'paint' },
+  image: { icon: 'assets/icons/image-file.svg', label: 'PNG Image',     appId: 'viewer' },
 };
 
 // The type info for a file. Unknown types are treated as text.

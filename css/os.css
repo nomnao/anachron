@@ -931,3 +931,146 @@
     inset var(--px) var(--px) 0 #808080,
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
 }
+
+/* ================= CAMERA ================= */
+
+.camera {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* A black, sunken box around the live picture */
+.camera-view {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000000;
+  box-shadow:
+    inset var(--px) var(--px) 0 #808080,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+/* One photo pixel = one virtual pixel, like Paint */
+.camera-canvas {
+  width: calc(var(--px) * 360);
+  height: calc(var(--px) * 220);
+  image-rendering: pixelated;
+}
+
+/* Waiting / error text, over the black picture */
+.camera-message {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--px) * 10);
+  padding: calc(var(--px) * 20);
+  color: #ffffff;
+  text-align: center;
+  background: #000000;
+}
+
+.camera-message[hidden],
+.camera-message [hidden] {
+  display: none;
+}
+
+.camera-message p {
+  margin: 0;
+  max-width: calc(var(--px) * 260);
+}
+
+.camera-message .push-button {
+  color: #000000;
+}
+
+/* The white flash when a picture is taken */
+.camera-flash {
+  position: absolute;
+  inset: 0;
+  background: #ffffff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.camera-flash.is-flashing {
+  animation: camera-flash 0.35s ease-out;
+}
+
+@keyframes camera-flash {
+  from { opacity: 0.9; }
+  to   { opacity: 0; }
+}
+
+.camera-controls {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 6);
+  padding-top: calc(var(--px) * 4);
+}
+
+.camera-shutter {
+  min-width: calc(var(--px) * 100);
+  font-weight: bold;
+}
+
+.camera-shutter:disabled {
+  color: #808080;
+  text-shadow: var(--px) var(--px) 0 #ffffff;
+}
+
+.camera-status {
+  flex: 1;
+}
+
+/* ================= IMAGE VIEWER ================= */
+
+.viewer {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Dark grey around the picture, like Paint; scrolls if needed */
+.viewer-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: calc(var(--px) * 4);
+  background: #808080;
+  box-shadow:
+    inset var(--px) var(--px) 0 #404040,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+.viewer-image {
+  flex-shrink: 0;
+  image-rendering: pixelated;
+}
+
+.viewer-image[hidden] {
+  display: none;
+}
+
+.viewer-missing {
+  margin: 0;
+  color: #ffffff;
+}
+
+/* ----- Camera: lets the window take key presses without an outline ----- */
+.camera {
+  outline: none;
+}

@@ -7,7 +7,7 @@ const DESKTOP_WIDTH = 640;
 const TASKBAR_HEIGHT = 28;
 const DOUBLE_CLICK_MS = 450;
 
-// window id -> { id, title, icon, x, y, width, height, z, minimized, maximized, el }
+// window id -> { id, title, icon, x, y, width, height, z, minimized, maximized, el, onClose }
 const windows = new Map();
 let activeId = null;
 let desktop = null;
@@ -49,7 +49,9 @@ function notify() {
 
 // ---------- Opening and closing ----------
 
-export function openWindow({ id, title, icon, width, height, content }) {
+// onClose (optional) runs when the window closes, so an app can
+// stop anything it started, like a webcam.
+export function openWindow({ id, title, icon, width, height, content, onClose }) {
   // Only one window per app for now: if it is already open, bring it back
   if (windows.has(id)) {
     restoreWindow(id);
@@ -62,7 +64,7 @@ export function openWindow({ id, title, icon, width, height, content }) {
   const win = {
     id, title, icon,
     x: 110 + offset, y: 20 + offset, width, height,
-    z: 0, minimized: false, maximized: false, el: null,
+    z: 0, minimized: false, maximized: false, el: null, onClose,
   };
 
   win.el = createWindowElement(win, content);
@@ -81,6 +83,7 @@ export function closeWindow(id) {
   const win = windows.get(id);
   if (!win) return;
 
+  win.onClose?.();
   win.el.remove();
   windows.delete(id);
 
@@ -89,6 +92,12 @@ export function closeWindow(id) {
     focusTopWindow();
   }
   notify();
+}
+
+// Closes every window, e.g. when the computer shuts down,
+// so each app gets the chance to clean up.
+export function closeAllWindows() {
+  for (const id of [...windows.keys()]) closeWindow(id);
 }
 
 // Changes the text in a window's title bar and taskbar button.
