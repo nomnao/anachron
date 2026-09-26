@@ -1,6 +1,6 @@
 # ANACHRON
 
-A computer from a timeline that never existed.
+The nineties never left. They moved into your browser.
 
 ANACHRON is a fictional 1990s operating system that runs entirely in your browser. It sits on a beige CRT monitor: press the power button, watch it boot, and you get a desktop with windows, a Start menu and working apps. You can write notes, draw pictures, take photos with your webcam and record short videos, and everything you save stays on the computer's desktop.
 
