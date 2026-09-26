@@ -1,15 +1,15 @@
 // My Files: every saved file in one list, with its type and size.
 // Double-click (or Enter) opens a file in its own app;
-// Delete removes it. The list updates by itself whenever
+// Delete sends it to the Recycle Bin. The list updates by itself whenever
 // a file is saved or deleted anywhere.
 
 import { fileTypeOf } from '../app.js';
 import { setUpMenuBar } from '../shell/menus.js';
-import { showConfirmDialog } from '../shell/dialogs.js';
 import { showContextMenu } from '../shell/context-menu.js';
 import { isDoubleClick } from '../shell/double-click.js';
 import { renameInPlace } from '../shell/rename.js';
-import { listFiles, deleteFile, onFilesChanged } from '../system/fs.js';
+import { listFiles, onFilesChanged } from '../system/fs.js';
+import { confirmRecycle } from '../shell/recycle.js';
 
 // context comes from the desktop:
 //   openFile - opens a file in the app that belongs to its type
@@ -213,14 +213,7 @@ async function deleteSelected(explorer) {
   const name = explorer.selectedName;
   if (!name) return;
 
-  const confirmed = await showConfirmDialog(explorer.root, {
-    title: 'Confirm File Delete',
-    message: `Are you sure you want to delete '${name}'?`,
-    confirmLabel: 'Yes',
-    cancelLabel: 'No',
-  });
-
-  if (confirmed) deleteFile(name);
+  await confirmRecycle(explorer.root, name);
   explorer.root.focus({ preventScroll: true });
 }
 
@@ -229,7 +222,7 @@ async function deleteSelected(explorer) {
 // How many bytes a file takes. Pictures are stored as base64 text,
 // which is a third bigger than the picture itself, so we count
 // the picture's real size.
-function fileSize(file) {
+export function fileSize(file) {
   // Big files (videos) know their own size
   if (file.big) return file.size;
   if (file.type === 'image') {
@@ -240,6 +233,6 @@ function fileSize(file) {
 }
 
 // Sizes are shown in whole kilobytes, rounded up, like "3KB"
-function formatSize(bytes) {
+export function formatSize(bytes) {
   return `${bytes === 0 ? 0 : Math.ceil(bytes / 1024)}KB`;
 }

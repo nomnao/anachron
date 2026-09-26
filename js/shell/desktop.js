@@ -1,17 +1,18 @@
 // The desktop: icons, taskbar, Start menu and clock.
 
-import { APPS, LISTED_APPS, fileTypeOf } from '../app.js';
+import { APPS, LISTED_APPS, RECYCLE_BIN_ICONS, fileTypeOf } from '../app.js';
 import {
   initWindowManager, openWindow, closeAllWindows, requestCloseAll, hasWindow, restoreWindow, renameWindow,
   setWindowTitle, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
-import { listFiles, deleteFile, onFilesChanged, onFileRenamed } from '../system/fs.js';
+import { listFiles, listRecycled, onFilesChanged, onFileRenamed, onRecycleBinChanged } from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
 import { trackEvent } from '../system/analytics.js';
 import { showContextMenu } from './context-menu.js';
 import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
 import { setUpStartMenu } from './start-menu.js';
+import { confirmRecycle, confirmEmptyRecycleBin } from './recycle.js';
 
 // Things to undo when the desktop goes away (timers, listeners
 // on the whole page), so nothing is left running after a shut down
@@ -88,6 +89,8 @@ function createIcons(desktop) {
     iconArea.append(createIcon(app.icon, app.title, () => launchApp(app)));
   }
 
+  iconArea.append(createRecycleBinIcon(desktop));
+
   // Saved files come after the apps. They live in their own box
   // (display: contents, so they still line up in the same grid)
   // so we can redraw just them whenever a file is saved.
@@ -161,7 +164,7 @@ function renderFileIcons() {
     const icon = createIcon(fileTypeOf(file).icon, file.name, open);
     icon.dataset.fileName = file.name;
 
-    // Right-click: a small menu to open or delete the file
+    // Right-click: a small menu to open, rename or delete the file
     icon.addEventListener('contextmenu', (event) => {
       event.preventDefault();
       selectIcon(icon);
@@ -190,16 +193,33 @@ async function renameIcon(icon) {
   if (redrawn) selectIcon(redrawn);
 }
 
-async function confirmDelete(name) {
-  const desktop = document.querySelector('#desktop');
-  const confirmed = await showConfirmDialog(desktop, {
-    title: 'Confirm File Delete',
-    message: `Are you sure you want to delete '${name}'?`,
-    confirmLabel: 'Yes',
-    cancelLabel: 'No',
+function confirmDelete(name) {
+  confirmRecycle(document.querySelector('#desktop'), name);
+}
+
+// The Recycle Bin sits after the apps. Its picture shows whether
+// anything is in it, so it changes whenever the bin does.
+function createRecycleBinIcon(desktop) {
+  const app = APPS.find((a) => a.id === 'recycle');
+  const icon = createIcon(app.icon, app.title, () => launchApp(app));
+  const image = icon.querySelector('img');
+
+  function update(items) {
+    image.src = items.length > 0 ? RECYCLE_BIN_ICONS.full : RECYCLE_BIN_ICONS.empty;
+  }
+  update(listRecycled());
+  cleanups.push(onRecycleBinChanged(update));
+
+  icon.addEventListener('contextmenu', (event) => {
+    event.preventDefault();
+    selectIcon(icon);
+    showContextMenu(event, [
+      { label: 'Open', action: () => launchApp(app) },
+      { label: 'Empty Recycle Bin', action: () => confirmEmptyRecycleBin(desktop) },
+    ]);
   });
 
-  if (confirmed) deleteFile(name);
+  return icon;
 }
 
 function handleIconClick(icon, onOpen) {
