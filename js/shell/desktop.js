@@ -1,4 +1,4 @@
-// The desktop: icons, taskbar, Start menu and clock.
+// The desktop: icons, taskbar, Start menu, clock and calendar.
 
 import { APPS, LISTED_APPS, RECYCLE_BIN_ICONS, fileTypeOf } from '../app.js';
 import {
@@ -14,6 +14,7 @@ import { showContextMenu } from './context-menu.js';
 import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
 import { setUpStartMenu } from './start-menu.js';
+import { setUpCalendar, formatLongDate } from './calendar.js';
 import { confirmRecycle, confirmEmptyRecycleBin } from './recycle.js';
 import { SORT_ORDERS, fileEntry, appEntry, sortByEntry } from './sort-files.js';
 
@@ -42,7 +43,7 @@ export function showDesktop(screen, { onShutDown }) {
           Start
         </button>
         <div id="taskbar-buttons"></div>
-        <div id="clock"></div>
+        <button id="clock" aria-label="Calendar"></button>
       </div>
     </div>
   `;
@@ -60,6 +61,9 @@ export function showDesktop(screen, { onShutDown }) {
     onLaunch: launchApp,
     onShutDown: () => confirmShutDown(desktop, onShutDown),
   }));
+
+  // Clicking the clock shows a calendar
+  cleanups.push(setUpCalendar(desktop));
 
   updateClock();
   const clockTimer = setInterval(updateClock, 1000);
@@ -413,8 +417,11 @@ function renderTaskbarButtons(windowList) {
 
 function updateClock() {
   const clock = document.querySelector('#clock');
-  clock.textContent = new Date().toLocaleTimeString('en-US', {
+  const now = new Date();
+  clock.textContent = now.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
   });
+  // Pointing at the clock shows the whole date
+  clock.title = formatLongDate(now);
 }

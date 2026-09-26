@@ -21,6 +21,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 
 - **Windows** can be dragged by their title bar, minimized, maximized (or double-click the title bar) and closed. Every open window has a button on the taskbar; click it to bring the window back or hide it.
 - **The Start menu** lists every app, and has **Shut Down...** at the bottom.
+- **The clock** in the bottom-right corner shows the time; point at it to see the date, or click it for a **calendar**. The arrows go to other months, and the date at the bottom comes back to today.
 - **Saved files** appear as icons on the desktop. Double-click one to open it.
 - **Right-click** a file for **Open**, **Rename** and **Delete**.
 - **Right-click the empty desktop** and choose **Arrange Icons** to sort your files **by Name**, **by Type**, **by Size** or **by Date** (newest first). The app icons are sorted along with your files (apps count as type *Application*, with no size or date). The icons stay sorted that way as you save, rename and delete files.

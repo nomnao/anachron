@@ -499,9 +499,124 @@
   display: flex;
   align-items: center;
   padding: 0 calc(var(--px) * 10);
+  border: none;
+  background: none;
   box-shadow:
     inset var(--px) var(--px) 0 #808080,
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+/* While the calendar is open the clock looks pushed in further */
+#clock.is-pressed {
+  box-shadow:
+    inset var(--px) var(--px) 0 #000000,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #808080;
+}
+
+/* ================= CALENDAR ================= */
+
+/* Pops up above the clock, in the bottom-right corner */
+#calendar {
+  position: absolute;
+  z-index: 15000;
+  right: calc(var(--px) * 2);
+  bottom: calc(var(--px) * 26);
+  width: calc(var(--px) * 224);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 4);
+  padding: calc(var(--px) * 6);
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #dfdfdf,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #ffffff;
+}
+
+#calendar[hidden] {
+  display: none;
+}
+
+/* Month and year, with arrows either side */
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: bold;
+}
+
+.calendar-arrow {
+  position: relative;
+  width: calc(var(--px) * 18);
+  height: calc(var(--px) * 16);
+  padding: 0;
+  border: none;
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #ffffff,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
+}
+
+.calendar-arrow:active {
+  box-shadow:
+    inset var(--px) var(--px) 0 #000000,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #808080;
+}
+
+/* A small black triangle pointing left or right */
+.calendar-arrow::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: calc(var(--px) * -4) 0 0 calc(var(--px) * -2);
+  border: calc(var(--px) * 4) solid transparent;
+  border-right-color: #000000;
+  border-left-width: 0;
+}
+
+.calendar-arrow[data-step="1"]::after {
+  border-left: calc(var(--px) * 4) solid #000000;
+  border-right-width: 0;
+}
+
+/* Seven columns, Sunday to Saturday */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: calc(var(--px) * 4);
+  text-align: center;
+}
+
+.calendar-grid span {
+  line-height: calc(var(--px) * 18);
+}
+
+.calendar-weekday {
+  color: #808080;
+  font-weight: bold;
+}
+
+.calendar-day.is-today {
+  background: #000080;
+  color: #ffffff;
+}
+
+/* Today's full date; pressing it comes back to this month */
+.calendar-today {
+  padding: calc(var(--px) * 2);
+  border: none;
+  background: none;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.calendar-today:hover {
+  text-decoration: underline;
 }
 /* ================= DIALOGS ================= */
 
