@@ -3,6 +3,8 @@
 // squares around it hide a mine. Right-click to plant a flag where
 // you think a mine is. Clicking a number whose mines are all flagged
 // uncovers the squares around it. The first click is always safe.
+// A maximized window gets a bigger board, with more squares and
+// the same share of mines as the chosen level.
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
@@ -75,13 +77,15 @@ export function createApp(context) {
       </div>
     </div>
 
-    <div class="mine-game">
-      <div class="mine-header">
-        <span class="mine-led" data-led="mines"></span>
-        <button class="mine-face" aria-label="New game"></button>
-        <span class="mine-led" data-led="time"></span>
+    <div class="mine-area">
+      <div class="mine-game">
+        <div class="mine-header">
+          <span class="mine-led" data-led="mines"></span>
+          <button class="mine-face" aria-label="New game"></button>
+          <span class="mine-led" data-led="time"></span>
+        </div>
+        <div class="mine-board"></div>
       </div>
-      <div class="mine-board"></div>
     </div>
   `;
 
@@ -122,7 +126,14 @@ export function createApp(context) {
     }
   });
 
-  context.onClose(() => stopTimer(game));
+  // Maximizing or restoring the window changes how big the board can be
+  const resizeObserver = new ResizeObserver(() => fitBoardToWindow(game));
+  resizeObserver.observe(root.querySelector('.mine-area'));
+
+  context.onClose(() => {
+    stopTimer(game);
+    resizeObserver.disconnect();
+  });
 
   return root;
 }
@@ -133,23 +144,27 @@ function newGame(game) {
   const level = LEVELS[game.levelId];
   stopTimer(game);
 
+  // A normal window fits the level's board; a maximized one stays
+  // as it is, and the board fills it
+  game.context.setSize(level.cols * CELL + FRAME_WIDTH, level.rows * CELL + FRAME_HEIGHT);
+  const { rows, cols } = boardSize(game);
+
   Object.assign(game, {
-    rows: level.rows,
-    cols: level.cols,
-    mines: level.mines,
+    rows,
+    cols,
+    mines: minesFor(level, rows, cols),
     // 'ready' until the first click, then 'playing', then 'won' or 'lost'
     state: 'ready',
     seconds: 0,
     flags: 0,
     opened: 0,
     exploded: null,
-    cells: Array.from({ length: level.rows * level.cols }, () => ({
+    cells: Array.from({ length: rows * cols }, () => ({
       mine: false, count: 0, open: false, flag: false,
     })),
   });
 
-  game.context.setSize(level.cols * CELL + FRAME_WIDTH, level.rows * CELL + FRAME_HEIGHT);
-  game.board.style.gridTemplateColumns = `repeat(${level.cols}, calc(var(--px) * ${CELL}))`;
+  game.board.style.gridTemplateColumns = `repeat(${cols}, calc(var(--px) * ${CELL}))`;
   game.board.replaceChildren(...game.cells.map((_, index) => {
     const cell = document.createElement('div');
     cell.className = 'mine-cell';
@@ -163,6 +178,53 @@ function newGame(game) {
   }
 
   render(game);
+}
+
+// How many rows and columns fit in the window: the level's own size,
+// or more when the window is maximized. It measures the board on
+// screen, so it only works once the window is open; before that the
+// board is the level's size.
+function boardSize(game) {
+  const level = LEVELS[game.levelId];
+  const area = game.root.querySelector('.mine-area').getBoundingClientRect();
+  const gameBox = game.root.querySelector('.mine-game').getBoundingClientRect();
+  const firstCell = game.board.firstElementChild;
+  if (!firstCell || area.width === 0) return { rows: level.rows, cols: level.cols };
+
+  // The size of one square, and of everything around the board
+  const cell = firstCell.getBoundingClientRect().width;
+  const frameWidth = gameBox.width - game.cols * cell;
+  const frameHeight = gameBox.height - game.rows * cell;
+
+  return {
+    rows: Math.max(level.rows, Math.floor((area.height - frameHeight) / cell)),
+    cols: Math.max(level.cols, Math.floor((area.width - frameWidth) / cell)),
+  };
+}
+
+// A bigger board gets the same share of mines as the level
+function minesFor(level, rows, cols) {
+  if (rows === level.rows && cols === level.cols) return level.mines;
+  return Math.round((rows * cols * level.mines) / (level.rows * level.cols));
+}
+
+// Runs when the window changes size. A game that hasn't started yet
+// gets a board that fits the new size. A game being played (or just
+// finished) keeps its board: the new size is used from the next game.
+function fitBoardToWindow(game) {
+  if (game.state !== 'ready') {
+    // Restoring a maximized window mustn't hide part of a big board,
+    // so the window grows to fit it
+    const area = game.root.querySelector('.mine-area');
+    const gameBox = game.root.querySelector('.mine-game');
+    if (gameBox.offsetWidth > area.clientWidth || gameBox.offsetHeight > area.clientHeight) {
+      game.context.setSize(game.cols * CELL + FRAME_WIDTH, game.rows * CELL + FRAME_HEIGHT);
+    }
+    return;
+  }
+
+  const { rows, cols } = boardSize(game);
+  if (rows !== game.rows || cols !== game.cols) newGame(game);
 }
 
 // Hides the mines, keeping them away from the first square clicked
@@ -225,7 +287,7 @@ function setUpBoard(game) {
   });
 
   // Right-click plants or removes a flag
-  root.querySelector('.mine-game').addEventListener('contextmenu', (event) => {
+  root.querySelector('.mine-area').addEventListener('contextmenu', (event) => {
     event.preventDefault();
     const index = cellIndex(event);
     if (index === null) return;
@@ -404,6 +466,9 @@ function setFace(game, face) {
 
 async function checkBestTime(game) {
   const level = LEVELS[game.levelId];
+  // Only the level's own board counts, not a bigger maximized one
+  if (game.rows !== level.rows || game.cols !== level.cols) return;
+
   const best = game.best[game.levelId];
   if (best !== undefined && best <= game.seconds) return;
 
