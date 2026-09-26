@@ -1,6 +1,6 @@
 // Sorting icons and files, for the desktop's Arrange Icons and the
-// column titles in My Files. Both sort "entries", which describe
-// an app or a file the same way:
+// column titles in My Files and the Recycle Bin. They all sort
+// "entries", which describe an app or a file the same way:
 //   { name, typeLabel, size, modified }
 // Apps have no size (0) and no date.
 
@@ -41,4 +41,56 @@ export function sortByEntry(items, orderId, descending = false) {
 
   const sorted = [...items].sort((a, b) => order.compare(a.entry, b.entry));
   return descending ? sorted.reverse() : sorted;
+}
+
+// Makes a list's column titles sort it. Each title that sorts has
+// data-sort set to one of SORT_ORDERS' ids. Clicking one sorts by it,
+// clicking it again reverses, and a small arrow shows which (see
+// .is-sorted in os.css). The choice is kept under storageKey.
+//
+// Gives back the sort, { by, descending }, which changes as titles
+// are clicked; by is null until one is. onChange runs after each click.
+export function setUpColumnSorting(header, storageKey, onChange) {
+  const sort = loadSort(storageKey);
+
+  function showArrow() {
+    for (const column of header.querySelectorAll('[data-sort]')) {
+      const sorted = column.dataset.sort === sort.by;
+      column.classList.toggle('is-sorted', sorted);
+      column.classList.toggle('is-descending', sorted && sort.descending);
+    }
+  }
+
+  header.addEventListener('click', (event) => {
+    const column = event.target.closest('[data-sort]');
+    if (!column) return;
+
+    const by = column.dataset.sort;
+    sort.descending = sort.by === by ? !sort.descending : false;
+    sort.by = by;
+    saveSort(storageKey, sort);
+    showArrow();
+    onChange();
+  });
+
+  showArrow();
+  return sort;
+}
+
+function loadSort(storageKey) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey));
+    if (saved?.by) return { by: saved.by, descending: Boolean(saved.descending) };
+  } catch {
+    // Blocked or unreadable: start unsorted
+  }
+  return { by: null, descending: false };
+}
+
+function saveSort(storageKey, sort) {
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(sort));
+  } catch {
+    // Not kept, but the list stays sorted while the window is open
+  }
 }

@@ -1,8 +1,8 @@
 // My Files: every saved file in one list, with its type and size.
 // Double-click (or Enter) opens a file in its own app;
 // Delete sends it to the Recycle Bin. Click a column title to sort
-// by that column, and again to reverse the order. The list updates by itself whenever
-// a file is saved or deleted anywhere.
+// by that column, and again to reverse the order. The list updates
+// by itself whenever a file is saved or deleted anywhere.
 
 import { fileTypeOf } from '../app.js';
 import { setUpMenuBar } from '../shell/menus.js';
@@ -10,13 +10,11 @@ import { showContextMenu } from '../shell/context-menu.js';
 import { isDoubleClick } from '../shell/double-click.js';
 import { renameInPlace } from '../shell/rename.js';
 import { listFiles, onFilesChanged, fileSize } from '../system/fs.js';
-import { fileEntry, sortByEntry } from '../shell/sort-files.js';
-
-// The column the list is sorted by ('name', 'type' or 'size', or
-// null for the order files were first saved), and which way.
-// Kept for next time.
-const SORT_STORAGE_KEY = 'anachron.files-sort';
+import { fileEntry, sortByEntry, setUpColumnSorting } from '../shell/sort-files.js';
 import { confirmRecycle } from '../shell/recycle.js';
+
+// Where the column the list is sorted by is kept for next time
+const SORT_STORAGE_KEY = 'anachron.files-sort';
 
 // context comes from the desktop:
 //   openFile - opens a file in the app that belongs to its type
@@ -59,7 +57,9 @@ export function createApp(context) {
     rows: root.querySelector('.files-rows'),
     selectedName: null,
     openFile: context.openFile,
-    sort: loadSort(),
+    // Which column the list is sorted by ('name', 'type' or 'size',
+    // or null for the order files were first saved), and which way
+    sort: setUpColumnSorting(root.querySelector('.files-header'), SORT_STORAGE_KEY, () => render(explorer)),
   };
 
   render(explorer);
@@ -82,20 +82,6 @@ export function createApp(context) {
 
   setUpRows(explorer);
 
-  // Clicking a column title sorts by it; clicking it again reverses
-  root.querySelector('.files-header').addEventListener('click', (event) => {
-    const column = event.target.closest('[data-sort]');
-    if (!column) return;
-
-    const by = column.dataset.sort;
-    explorer.sort = {
-      by,
-      descending: explorer.sort.by === by ? !explorer.sort.descending : false,
-    };
-    saveSort(explorer.sort);
-    render(explorer);
-  });
-
   return root;
 }
 
@@ -106,12 +92,6 @@ function render(explorer) {
   const { by, descending } = explorer.sort;
   const withEntries = listFiles().map((file) => ({ ...file, entry: fileEntry(file) }));
   const files = sortByEntry(withEntries, by, descending);
-
-  // A small arrow on the sorted column's title shows which way it goes
-  for (const column of root.querySelectorAll('.files-header [data-sort]')) {
-    column.classList.toggle('is-sorted', column.dataset.sort === by);
-    column.classList.toggle('is-descending', column.dataset.sort === by && descending);
-  }
 
   // If the selected file is gone (deleted), nothing is selected
   if (!files.some((file) => file.name === explorer.selectedName)) {
@@ -248,26 +228,6 @@ async function deleteSelected(explorer) {
 
   await confirmRecycle(explorer.root, name);
   explorer.root.focus({ preventScroll: true });
-}
-
-// ---------- Remembering the sort order ----------
-
-function loadSort() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(SORT_STORAGE_KEY));
-    if (saved?.by) return { by: saved.by, descending: Boolean(saved.descending) };
-  } catch {
-    // Blocked or unreadable: start unsorted
-  }
-  return { by: null, descending: false };
-}
-
-function saveSort(sort) {
-  try {
-    localStorage.setItem(SORT_STORAGE_KEY, JSON.stringify(sort));
-  } catch {
-    // Not kept, but the list stays sorted while the window is open
-  }
 }
 
 // ---------- Sizes ----------
