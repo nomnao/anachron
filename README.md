@@ -21,6 +21,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 
 - **Windows** can be dragged by their title bar, minimized, maximized (or double-click the title bar) and closed. Every open window has a button on the taskbar; click it to bring the window back or hide it.
 - **The Start menu** lists every app, and has **Shut Down...** at the bottom.
+- **Display Properties** (right-click the empty desktop and choose **Properties**) changes the desktop: pick one of 16 **colors**, a classic 8×8 **pattern**, and a **wallpaper** from any picture you've saved in Paint or Camera, centered, tiled or stretched. The little screen shows it first; press **Apply** or **OK** to put it on the desktop. Right-click a picture and choose **Set as Wallpaper** to use it straight away.
 - **The clock** in the bottom-right corner shows the time; point at it to see the date, or click it for a **calendar**. The arrows go to other months, and the date at the bottom comes back to today.
 - **Saved files** appear as icons on the desktop. Double-click one to open it.
 - **Right-click** a file for **Open**, **Rename** and **Delete**.

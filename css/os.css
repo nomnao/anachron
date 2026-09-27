@@ -51,6 +51,15 @@
   grid-auto-columns: calc(var(--px) * 76);
 }
 
+/* The color, pattern and wallpaper chosen in Display Properties,
+   behind everything else. Pictures keep their chunky pixels. */
+#wallpaper {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+
 /* The saved files' icons sit in the same grid as the apps */
 #file-icons {
   display: contents;
@@ -75,7 +84,10 @@
 
 .icon-label {
   padding: 0 calc(var(--px) * 2);
-  color: #ffffff;
+  /* The label sits on the desktop color (set by Display Properties),
+     so it can be read over any pattern or wallpaper */
+  background: var(--desktop-color, #008080);
+  color: var(--desktop-text, #ffffff);
   text-align: center;
   line-height: 1.2;
 }
@@ -87,6 +99,7 @@
 
 .desktop-icon.is-selected .icon-label {
   background: #000080;
+  color: #ffffff;
   outline: var(--px) dotted #ffffff;
 }
 
@@ -1596,3 +1609,139 @@
 .mine-cell.count-6 { color: #008080; }
 .mine-cell.count-7 { color: #000000; }
 .mine-cell.count-8 { color: #808080; }
+
+/* ================= DISPLAY PROPERTIES ================= */
+
+.display {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 4);
+  padding: calc(var(--px) * 2) calc(var(--px) * 4);
+}
+
+/* A little monitor showing the choices before they're applied */
+.display-monitor {
+  align-self: center;
+  padding: calc(var(--px) * 6) calc(var(--px) * 6) calc(var(--px) * 10);
+  background: #c0c0c0;
+  border-radius: calc(var(--px) * 3);
+  box-shadow:
+    inset var(--px) var(--px) 0 #ffffff,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
+}
+
+.display-screen {
+  width: calc(var(--px) * 128);
+  height: calc(var(--px) * 88);
+  border: var(--px) solid #000000;
+  image-rendering: pixelated;
+}
+
+.display-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--px) * 6);
+}
+
+/* A grooved box with its name in the top edge */
+.display-group {
+  min-width: 0;
+  margin: 0;
+  padding: calc(var(--px) * 2) calc(var(--px) * 6) calc(var(--px) * 6);
+  border: var(--px) solid #808080;
+  box-shadow: var(--px) var(--px) 0 #ffffff, inset var(--px) var(--px) 0 #ffffff;
+}
+
+.display-group legend {
+  padding: 0 calc(var(--px) * 2);
+}
+
+.display-list {
+  position: relative;
+  height: calc(var(--px) * 60);
+  overflow-y: auto;
+  padding: calc(var(--px) * 2);
+}
+
+.display-item {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  height: calc(var(--px) * 15);
+  padding: 0 calc(var(--px) * 3);
+  white-space: nowrap;
+  cursor: default;
+}
+
+.display-item img {
+  flex-shrink: 0;
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 12);
+}
+
+.display-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.display-item.is-selected {
+  background: #000080;
+  color: #ffffff;
+}
+
+/* Center, Tile and Stretch, side by side */
+.display-modes {
+  display: flex;
+  justify-content: space-between;
+  margin-top: calc(var(--px) * 4);
+}
+
+.display-modes label {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 2);
+}
+
+.display-modes input {
+  width: calc(var(--px) * 11);
+  height: calc(var(--px) * 11);
+  margin: 0;
+}
+
+.display-modes input:disabled,
+.display-modes label:has(input:disabled) {
+  color: #808080;
+}
+
+/* The 16 colors in two rows */
+.display-colors {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: calc(var(--px) * 3);
+}
+
+.display-swatch {
+  height: calc(var(--px) * 14);
+  padding: 0;
+  border: none;
+  box-shadow:
+    inset var(--px) var(--px) 0 #808080,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+/* The chosen color has a black and white box around it */
+.display-swatch.is-selected {
+  outline: var(--px) solid #000000;
+  outline-offset: var(--px);
+  box-shadow: inset 0 0 0 var(--px) #ffffff;
+}
+
+.display-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: calc(var(--px) * 6);
+  margin-top: auto;
+}

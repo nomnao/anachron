@@ -30,6 +30,8 @@ export const APPS = [
     load: () => import('./apps/viewer.js'), listed: false },
   { id: 'player',   title: 'Video Player',   icon: 'assets/icons/video-file.svg', width: 384, height: 300,
     load: () => import('./apps/player.js'), listed: false },
+  { id: 'display',  title: 'Display Properties', icon: 'assets/icons/display.svg', width: 360, height: 340,
+    load: () => import('./apps/display.js'), listed: false },
   { id: 'recycle',  title: 'Recycle Bin',    icon: RECYCLE_BIN_ICONS.empty, width: 420, height: 250,
     load: () => import('./apps/recycle.js'), listed: false },
 ];

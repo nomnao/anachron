@@ -9,6 +9,7 @@
 //   checked: true  - a tick in front of it (e.g. the chosen sort order)
 //   items: [...]   - a submenu instead of an action; it opens to the
 //                    side when you point at the item
+// and { separator: true } draws a line between groups of items.
 //
 // Choosing an item, pressing anywhere else, or Escape closes it.
 
@@ -25,6 +26,13 @@ export function showContextMenu(event, items) {
     menu.className = 'menu-items context-menu';
 
     for (const item of menuItems) {
+      if (item.separator) {
+        const line = document.createElement('div');
+        line.className = 'menu-separator';
+        menu.append(line);
+        continue;
+      }
+
       const button = document.createElement('button');
       button.textContent = item.label;
       button.classList.toggle('is-checked', Boolean(item.checked));
