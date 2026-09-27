@@ -33,7 +33,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 | App | What it does |
 |---|---|
 | **Notepad** | Write plain text. File > Save puts a `.txt` file on the desktop. Edit > Time/Date types the current time. |
-| **Paint** | Draw with a pencil, eraser and paint bucket, straight lines, rectangles and ellipses (outlined or filled in), and text, in three sizes and 28 colors. The color picker takes a color from the picture. Hold Shift for straight lines, squares and circles. Saves `.png` pictures. |
+| **Paint** | Draw with a pencil, eraser and paint bucket, straight lines, rectangles and ellipses (outlined or filled in), and text, in three sizes and 28 colors. The color picker takes a color from the picture. Hold Shift for straight lines, squares and circles. Image > Attributes changes the picture's size (up to 1000 × 1000). Saves `.png` pictures. |
 | **Camera** | Shows your webcam. Take Picture freezes the shot; save it if you like it, or Retake. |
 | **Video Recorder** | Records up to 60 seconds of webcam video (with sound, if you allow the microphone). It plays back straight away; save it if you like it, or Record Again. |
 | **My Files** | Lists every file with its type and size. Click a column title to sort by it, and again to reverse. Open, rename or delete files from here too. |
@@ -63,6 +63,7 @@ Photos and videos have the same chunky-pixel look as Paint, and a photo is exact
 |---|---|
 | Ctrl+S / Cmd+S | Save in Notepad, Paint, Camera and Video Recorder |
 | Ctrl+Z / Cmd+Z | Undo in Paint |
+| Ctrl+E / Cmd+E | Change the picture's size in Paint (Image > Attributes) |
 | Shift (while dragging) | Straight lines at 45°, squares and circles in Paint |
 | F2 | Rename the selected file (desktop or My Files); new game in Minesweeper |
 | Delete (or Backspace) | Send the selected file to the Recycle Bin, after asking (in the Recycle Bin: delete it for good) |

@@ -692,6 +692,16 @@
   -webkit-user-select: text;
 }
 
+/* Width and Height in the Attributes box: short boxes, lined up */
+.dialog-label {
+  width: calc(var(--px) * 40);
+}
+
+.dialog-number {
+  flex: none;
+  width: calc(var(--px) * 48);
+}
+
 .dialog-message {
   min-height: 2.4em;
   margin: 0;
@@ -855,11 +865,12 @@
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
 }
 
-/* One picture pixel = one virtual pixel, drawn as sharp squares */
+/* One picture pixel = one virtual pixel, drawn as sharp squares.
+   Its size on screen is set by paint.js, since pictures can be
+   any size (Image > Attributes). */
 .paint-canvas {
   display: block;
-  width: calc(var(--px) * 360);
-  height: calc(var(--px) * 220);
+  flex-shrink: 0;
   background: #ffffff;
   image-rendering: pixelated;
   cursor: crosshair;

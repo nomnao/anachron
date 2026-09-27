@@ -4,13 +4,16 @@
 // double-clicking that file opens it here again.
 
 import { setUpMenuBar } from '../shell/menus.js';
-import { showConfirmDialog, showSaveAsDialog, showSaveChangesDialog } from '../shell/dialogs.js';
+import { showConfirmDialog, showSaveAsDialog, showSaveChangesDialog, showSizeDialog } from '../shell/dialogs.js';
 import { readFile, writeFile, onFileRenamed } from '../system/fs.js';
 
-// The picture is always this many pixels. On screen each of its
-// pixels is one "virtual pixel", so drawings look chunky and retro.
-const CANVAS_WIDTH = 360;
-const CANVAS_HEIGHT = 220;
+// A new picture is this many pixels, until Image > Attributes
+// changes it; an opened picture keeps its own size. On screen each
+// of its pixels is one "virtual pixel", so drawings look chunky
+// and retro.
+const DEFAULT_WIDTH = 360;
+const DEFAULT_HEIGHT = 220;
+const MAX_SIZE = 1000;
 
 // The classic 28-colour palette: dark shades on top, bright ones below
 const PALETTE = [
@@ -99,7 +102,7 @@ const FILL_STYLES = [
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'paint';
-  // Lets the Paint window receive key presses (Ctrl+Z, Ctrl+S)
+  // Lets the Paint window receive key presses (Ctrl+Z, Ctrl+S, Ctrl+E)
   root.tabIndex = -1;
 
   root.innerHTML = `
@@ -116,6 +119,12 @@ export function createApp(context) {
         <button class="menu-title"><u>E</u>dit</button>
         <div class="menu-items">
           <button data-command="undo"><u>U</u>ndo</button>
+        </div>
+      </div>
+      <div class="menu">
+        <button class="menu-title"><u>I</u>mage</button>
+        <div class="menu-items">
+          <button data-command="attributes"><u>A</u>ttributes...</button>
         </div>
       </div>
     </div>
@@ -146,7 +155,7 @@ export function createApp(context) {
       </div>
 
       <div class="paint-canvas-area">
-        <canvas class="paint-canvas" width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}"></canvas>
+        <canvas class="paint-canvas"></canvas>
       </div>
     </div>
 
@@ -181,6 +190,7 @@ export function createApp(context) {
     changed: false,
   };
 
+  setCanvasSize(paint, DEFAULT_WIDTH, DEFAULT_HEIGHT);
   clearCanvas(paint);
   if (paint.fileName) openPicture(paint, readFile(paint.fileName));
   updateTitle(paint);
@@ -214,6 +224,10 @@ export function createApp(context) {
       event.preventDefault();
       save(paint);
     }
+    if (key === 'e') {
+      event.preventDefault();
+      changeSize(paint);
+    }
   });
 
   return root;
@@ -224,6 +238,7 @@ function runCommand(command, paint) {
   if (command === 'save') save(paint);
   if (command === 'save-as') saveAs(paint);
   if (command === 'undo') undo(paint);
+  if (command === 'attributes') changeSize(paint);
 }
 
 // New: a blank, untitled picture (after asking about unsaved changes)
@@ -320,7 +335,7 @@ function setUpDrawing(paint) {
     // Left button, a finger or a pen; not right-click
     if (event.button !== 0) return;
     event.preventDefault();
-    const point = clampToCanvas(toCanvasPoint(canvas, event));
+    const point = clampToCanvas(canvas, toCanvasPoint(canvas, event));
 
     // A text box being typed in is finished first. With the Text
     // tool, that's all a click does, like the real thing.
@@ -390,16 +405,16 @@ function setUpDrawing(paint) {
 function toCanvasPoint(canvas, event) {
   const rect = canvas.getBoundingClientRect();
   return {
-    x: Math.floor((event.clientX - rect.left) * CANVAS_WIDTH / rect.width),
-    y: Math.floor((event.clientY - rect.top) * CANVAS_HEIGHT / rect.height),
+    x: Math.floor((event.clientX - rect.left) * canvas.width / rect.width),
+    y: Math.floor((event.clientY - rect.top) * canvas.height / rect.height),
   };
 }
 
 // A click on the very edge can land just outside the picture
-function clampToCanvas(point) {
+function clampToCanvas(canvas, point) {
   return {
-    x: Math.min(Math.max(point.x, 0), CANVAS_WIDTH - 1),
-    y: Math.min(Math.max(point.y, 0), CANVAS_HEIGHT - 1),
+    x: Math.min(Math.max(point.x, 0), canvas.width - 1),
+    y: Math.min(Math.max(point.y, 0), canvas.height - 1),
   };
 }
 
@@ -528,7 +543,7 @@ function startText(paint, point) {
   const { canvas } = paint;
   const fontSize = FONT_SIZES[SIZES.indexOf(paint.size)];
   // How many screen pixels one picture pixel is right now
-  const scale = canvas.clientWidth / CANVAS_WIDTH;
+  const scale = canvas.clientWidth / canvas.width;
 
   const input = document.createElement('input');
   input.className = 'paint-text-input';
@@ -573,17 +588,18 @@ function startText(paint, point) {
 // bucket stop short, so the letters are drawn on a spare canvas first
 // and every pixel that is mostly covered is copied across in full.
 function drawText(paint, text, point, fontSize, color) {
+  const { width, height } = paint.canvas;
   const spare = document.createElement('canvas');
-  spare.width = CANVAS_WIDTH;
-  spare.height = CANVAS_HEIGHT;
+  spare.width = width;
+  spare.height = height;
   const spareCtx = spare.getContext('2d', { willReadFrequently: true });
   spareCtx.font = `${fontSize}px ${FONT_FAMILY}`;
   spareCtx.textBaseline = 'top';
   spareCtx.fillStyle = '#000000';
   spareCtx.fillText(text, point.x, point.y);
-  const letters = spareCtx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT).data;
+  const letters = spareCtx.getImageData(0, 0, width, height).data;
 
-  const image = paint.ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  const image = paint.ctx.getImageData(0, 0, width, height);
   const pixels = new Uint32Array(image.data.buffer);
   const fill = colorToPixel(color);
   for (let i = 0; i < pixels.length; i++) {
@@ -596,27 +612,28 @@ function drawText(paint, text, point, fontSize, color) {
 // pixel of the same colour to the new colour.
 function floodFill(paint, start, color) {
   const { ctx } = paint;
-  const image = ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  const { width, height } = paint.canvas;
+  const image = ctx.getImageData(0, 0, width, height);
   // Each pixel as one number, so comparing colours is quick
   const pixels = new Uint32Array(image.data.buffer);
 
-  const target = pixels[start.y * CANVAS_WIDTH + start.x];
+  const target = pixels[start.y * width + start.x];
   const fill = colorToPixel(color);
   if (target === fill) return;
 
   // Pixels still to look at, as positions in the pixels list
-  const toVisit = [start.y * CANVAS_WIDTH + start.x];
+  const toVisit = [start.y * width + start.x];
 
   while (toVisit.length > 0) {
     const i = toVisit.pop();
     if (pixels[i] !== target) continue;
     pixels[i] = fill;
 
-    const x = i % CANVAS_WIDTH;
+    const x = i % width;
     if (x > 0) toVisit.push(i - 1);
-    if (x < CANVAS_WIDTH - 1) toVisit.push(i + 1);
-    if (i >= CANVAS_WIDTH) toVisit.push(i - CANVAS_WIDTH);
-    if (i < CANVAS_WIDTH * (CANVAS_HEIGHT - 1)) toVisit.push(i + CANVAS_WIDTH);
+    if (x < width - 1) toVisit.push(i + 1);
+    if (i >= width) toVisit.push(i - width);
+    if (i < width * (height - 1)) toVisit.push(i + width);
   }
 
   ctx.putImageData(image, 0, 0);
@@ -631,7 +648,41 @@ function colorToPixel(color) {
 
 function clearCanvas(paint) {
   paint.ctx.fillStyle = '#ffffff';
-  paint.ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  paint.ctx.fillRect(0, 0, paint.canvas.width, paint.canvas.height);
+}
+
+// ---------- The picture's size ----------
+
+// Sets the picture's size in pixels (which empties it), and its size
+// on screen to match: one virtual pixel per picture pixel
+function setCanvasSize(paint, width, height) {
+  const { canvas } = paint;
+  canvas.width = width;
+  canvas.height = height;
+  canvas.style.width = `calc(var(--px) * ${width})`;
+  canvas.style.height = `calc(var(--px) * ${height})`;
+}
+
+// Image > Attributes: asks for a new size. The picture stays in the
+// top-left corner; a bigger one gets white around it, a smaller one
+// loses its right and bottom edges. Undo puts the old size back.
+async function changeSize(paint) {
+  const { canvas } = paint;
+  const size = await showSizeDialog(paint.root, {
+    width: canvas.width,
+    height: canvas.height,
+    defaultWidth: DEFAULT_WIDTH,
+    defaultHeight: DEFAULT_HEIGHT,
+    max: MAX_SIZE,
+  });
+  paint.root.focus({ preventScroll: true });
+  if (!size || (size.width === canvas.width && size.height === canvas.height)) return;
+
+  rememberForUndo(paint);
+  const picture = paint.undoSteps.at(-1);
+  setCanvasSize(paint, size.width, size.height);
+  clearCanvas(paint);
+  paint.ctx.putImageData(picture, 0, 0);
 }
 
 // ---------- Undo ----------
@@ -640,24 +691,31 @@ function clearCanvas(paint) {
 // Every change goes through here, so it also marks the picture changed.
 function rememberForUndo(paint) {
   paint.changed = true;
-  paint.undoSteps.push(paint.ctx.getImageData(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT));
+  paint.undoSteps.push(paint.ctx.getImageData(0, 0, paint.canvas.width, paint.canvas.height));
   if (paint.undoSteps.length > MAX_UNDO) paint.undoSteps.shift();
 }
 
 function undo(paint) {
   const previous = paint.undoSteps.pop();
   if (!previous) return;
+  // Undoing a change of size puts the old size back too
+  if (previous.width !== paint.canvas.width || previous.height !== paint.canvas.height) {
+    setCanvasSize(paint, previous.width, previous.height);
+  }
   paint.ctx.putImageData(previous, 0, 0);
   paint.changed = true;
 }
 
 // ---------- Opening and saving ----------
 
-// Pictures are stored as PNG data URLs
+// Pictures are stored as PNG data URLs. The picture keeps its own size.
 function openPicture(paint, dataUrl) {
   if (!dataUrl) return;
   const image = new Image();
-  image.onload = () => paint.ctx.drawImage(image, 0, 0);
+  image.onload = () => {
+    setCanvasSize(paint, image.naturalWidth, image.naturalHeight);
+    paint.ctx.drawImage(image, 0, 0);
+  };
   image.src = dataUrl;
 }
 
