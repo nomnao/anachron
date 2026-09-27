@@ -844,6 +844,7 @@
 
 /* Dark grey area around the picture, scrolling if the window is small */
 .paint-canvas-area {
+  position: relative;
   flex: 1;
   min-width: 0;
   overflow: auto;
@@ -863,6 +864,53 @@
   image-rendering: pixelated;
   cursor: crosshair;
   touch-action: none;
+}
+
+/* The Text tool's box: typed straight onto the picture, in the
+   chosen color, with a dashed edge until it's finished */
+.paint-text-input {
+  position: absolute;
+  min-width: calc(var(--px) * 20);
+  padding: 0;
+  border: var(--px) dashed #000080;
+  outline: none;
+  background: transparent;
+  line-height: 1;
+}
+
+/* Rectangles and ellipses: outline or filled in */
+.paint-fills {
+  display: flex;
+  flex-direction: column;
+  padding: calc(var(--px) * 3);
+  background: #c0c0c0;
+}
+
+.paint-fills[hidden] {
+  display: none;
+}
+
+.fill-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: calc(var(--px) * 16);
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.fill-button svg {
+  width: calc(var(--px) * 16);
+  height: calc(var(--px) * 13);
+}
+
+.fill-button.is-selected {
+  background: #000080;
+}
+
+.fill-button.is-selected svg {
+  filter: invert(1);
 }
 
 /* ----- Colour palette at the bottom ----- */
