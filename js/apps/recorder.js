@@ -258,12 +258,14 @@ function pickVideoFormat() {
 // Gives back true to carry on and close, false to stay open.
 async function askToSave(recorder) {
   if (recorder.mediaRecorder?.state === 'recording') {
-    return showConfirmDialog(recorder.root, {
+    const stop = await showConfirmDialog(recorder.root, {
       title: 'Video Recorder',
       message: 'Stop recording? The video will not be kept.',
       confirmLabel: 'Yes',
       cancelLabel: 'No',
     });
+    if (!stop) recorder.root.focus({ preventScroll: true });
+    return stop;
   }
 
   if (!recorder.clip || recorder.saved) return true;
@@ -273,7 +275,11 @@ async function askToSave(recorder) {
     message: 'Do you want to save this video?',
   });
   if (choice === 'discard') return true;
-  if (choice === 'cancel') return false;
+  if (choice === 'cancel') {
+    // Stay in the app, so typing and Ctrl+S carry on working
+    recorder.root.focus({ preventScroll: true });
+    return false;
+  }
   return saveVideo(recorder);
 }
 

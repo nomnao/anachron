@@ -197,7 +197,11 @@ async function askToSave(camera) {
     message: 'Do you want to save this picture?',
   });
   if (choice === 'discard') return true;
-  if (choice === 'cancel') return false;
+  if (choice === 'cancel') {
+    // Stay in the app, so typing and Ctrl+S carry on working
+    camera.root.focus({ preventScroll: true });
+    return false;
+  }
   return savePicture(camera);
 }
 

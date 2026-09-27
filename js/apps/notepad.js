@@ -138,7 +138,11 @@ async function askToSave(notepad) {
     fileName: notepad.fileName ?? 'Untitled',
   });
   if (choice === 'discard') return true;
-  if (choice === 'cancel') return false;
+  if (choice === 'cancel') {
+    // Stay in the app, so typing and Ctrl+S carry on working
+    notepad.text.focus();
+    return false;
+  }
   return save(notepad);
 }
 

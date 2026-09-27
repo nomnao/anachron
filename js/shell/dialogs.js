@@ -140,8 +140,13 @@ export function showSaveAsDialog(container, { fileName, extension }) {
     overlay.querySelector('[data-choice="cancel"]').addEventListener('click', () => finish(null));
 
     input.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== 'Escape') return;
+
+      // Use up the key: once the box closes, focus goes back to the
+      // app, and the same Enter must not type a new line into it
+      event.preventDefault();
       if (event.key === 'Enter') trySave();
-      if (event.key === 'Escape') finish(null);
+      else finish(null);
     });
 
     // Typing a different name clears the warning

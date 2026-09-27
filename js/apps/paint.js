@@ -385,7 +385,11 @@ async function askToSave(paint) {
     fileName: paint.fileName ?? 'untitled',
   });
   if (choice === 'discard') return true;
-  if (choice === 'cancel') return false;
+  if (choice === 'cancel') {
+    // Stay in the app, so typing and Ctrl+S carry on working
+    paint.root.focus({ preventScroll: true });
+    return false;
+  }
   return save(paint);
 }
 
