@@ -2,8 +2,8 @@
 
 import { APPS, LISTED_APPS, RECYCLE_BIN_ICONS, fileTypeOf } from '../app.js';
 import {
-  initWindowManager, openWindow, closeAllWindows, requestCloseAll, hasWindow, restoreWindow, renameWindow,
-  setWindowTitle, setWindowSize, onWindowsChanged, taskbarClick,
+  initWindowManager, openWindow, closeAllWindows, requestClose, requestCloseAll, hasWindow, restoreWindow,
+  renameWindow, setWindowTitle, setWindowSize, onWindowsChanged, taskbarClick,
 } from '../system/wm.js';
 import {
   listFiles, listRecycled, onFilesChanged, onFileRenamed, onRecycleBinChanged,
@@ -15,6 +15,9 @@ import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
 import { setUpStartMenu } from './start-menu.js';
 import { setUpCalendar, formatLongDate } from './calendar.js';
+import {
+  currentDisplaySettings, saveDisplaySettings, onDisplaySettingsChanged, paintBackground, labelTextColor,
+} from './background.js';
 import { confirmRecycle, confirmEmptyRecycleBin } from './recycle.js';
 import { SORT_ORDERS, fileEntry, appEntry, sortByEntry } from './sort-files.js';
 
@@ -36,6 +39,7 @@ const openWindows = new Map();
 export function showDesktop(screen, { onShutDown }) {
   screen.innerHTML = `
     <div id="desktop">
+      <div id="wallpaper"></div>
       <div id="desktop-icons"></div>
       <div id="taskbar">
         <button id="start-button">
@@ -50,6 +54,7 @@ export function showDesktop(screen, { onShutDown }) {
 
   const desktop = screen.querySelector('#desktop');
   initWindowManager(desktop);
+  setUpBackground(desktop);
   createIcons(desktop);
 
   // Redraw the taskbar buttons whenever a window opens, closes,
@@ -147,6 +152,8 @@ function createIcons(desktop) {
         checked: sortBy === order.id,
         action: () => arrangeIcons(order.id),
       })) },
+      { separator: true },
+      { label: 'Properties', action: () => launchApp(APPS.find((app) => app.id === 'display')) },
     ]);
   });
 
@@ -201,6 +208,8 @@ function renderFileIcons() {
       selectIcon(icon);
       showContextMenu(event, [
         { label: 'Open', action: open },
+        // Any picture can go on the desktop
+        ...(file.type === 'image' ? [{ label: 'Set as Wallpaper', action: () => setAsWallpaper(file.name) }] : []),
         { label: 'Rename', action: () => renameIcon(icon) },
         { label: 'Delete', action: () => confirmDelete(file.name) },
       ]);
@@ -211,6 +220,32 @@ function renderFileIcons() {
 
   document.querySelector('#file-icons').replaceChildren(...icons);
   applyIconOrder();
+}
+
+// ---------- Background ----------
+
+// Draws the color, pattern and wallpaper chosen in Display Properties,
+// and again whenever they change. Files changing matters too: the
+// wallpaper picture may be saved again in Paint, or deleted.
+function setUpBackground(desktop) {
+  const layer = desktop.querySelector('#wallpaper');
+
+  function paint() {
+    const settings = currentDisplaySettings();
+    paintBackground(layer, settings);
+    // Icon labels sit on the desktop color, like the real thing,
+    // so they can be read over any wallpaper
+    desktop.style.setProperty('--desktop-color', settings.color);
+    desktop.style.setProperty('--desktop-text', labelTextColor(settings.color));
+  }
+
+  paint();
+  cleanups.push(onDisplaySettingsChanged(paint));
+  cleanups.push(onFilesChanged(paint));
+}
+
+function setAsWallpaper(name) {
+  saveDisplaySettings({ ...currentDisplaySettings(), wallpaper: name });
 }
 
 // ---------- Arranging icons ----------
@@ -350,6 +385,10 @@ async function launchApp(app, options = {}) {
     },
     // Lets an app (like My Files) open a file in its own app
     openFile,
+    // Lets an app close its own window (e.g. an OK button)
+    close() {
+      requestClose(handle.id);
+    },
     // Lets an app run something when its window closes
     onClose(handler) {
       closeHandlers.push(handler);
