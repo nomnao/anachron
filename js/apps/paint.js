@@ -1,6 +1,6 @@
-// Paint: draw pictures with a pencil, an eraser, a paint bucket,
-// straight lines, rectangles, ellipses and text, and pick up colors
-// from the picture. Save puts an image file on the desktop;
+// Paint: draw pictures with a pencil, an eraser, a paint bucket, an
+// airbrush, straight lines, rectangles, ellipses and text, and pick
+// up colors from the picture. Save puts an image file on the desktop;
 // double-clicking that file opens it here again.
 
 import { setUpMenuBar } from '../shell/menus.js';
@@ -26,6 +26,11 @@ const PALETTE = [
 // Brush sizes in picture pixels. The eraser is always bigger than the pencil.
 const SIZES = [1, 3, 6];
 const eraserSize = (size) => size * 2 + 3;
+
+// How far the airbrush sprays (a radius in picture pixels), one for
+// each size, and how often it sprays while the button is held down
+const SPRAY_RADII = [4, 8, 12];
+const SPRAY_EVERY_MS = 30;
 
 // The Text tool's letter heights, in picture pixels, one for each size
 const FONT_SIZES = [11, 16, 24];
@@ -65,6 +70,13 @@ const TOOLS = [
     label: 'Pick Color',
     icon: `<path d="M9.5 3.5l3 3-7 7h-3v-3z" fill="#ffffff" stroke="#000"/>
            <path d="M10 2l4 4-1.5 1.5-4-4z" fill="#000"/>`,
+  },
+  {
+    id: 'airbrush',
+    label: 'Airbrush',
+    icon: `<path d="M4.5 6.5h5v8h-5z" fill="#c0c0c0" stroke="#000"/>
+           <path d="M5.5 4.5h3v2h-3z" fill="#000"/>
+           <path d="M11 2h1v1h-1zM13 3h1v1h-1zM11 5h1v1h-1zM13 6h1v1h-1z" fill="#000"/>`,
   },
   {
     id: 'line',
@@ -330,6 +342,8 @@ function setUpDrawing(paint) {
   // While dragging out a shape: where it started, and the picture
   // from before, to draw the shape afresh over it at every move
   let shape = null;
+  // While the airbrush is held down: where it is, and its timer
+  let spray = null;
 
   canvas.addEventListener('pointerdown', (event) => {
     // Left button, a finger or a pen; not right-click
@@ -374,12 +388,26 @@ function setUpDrawing(paint) {
       return;
     }
 
+    // The airbrush keeps spraying while held, even without moving,
+    // so the paint builds up the longer you hold it in one place
+    if (paint.tool === 'airbrush') {
+      spray = { point, timer: setInterval(() => sprayPaint(paint, spray.point), SPRAY_EVERY_MS) };
+      sprayPaint(paint, point);
+      return;
+    }
+
     lastPoint = point;
     drawLine(paint, lastPoint, point);
   });
 
   canvas.addEventListener('pointermove', (event) => {
     const point = toCanvasPoint(canvas, event);
+
+    if (spray) {
+      spray.point = point;
+      sprayPaint(paint, point);
+      return;
+    }
 
     if (shape) {
       paint.ctx.putImageData(shape.before, 0, 0);
@@ -396,9 +424,30 @@ function setUpDrawing(paint) {
   const stop = () => {
     lastPoint = null;
     shape = null;
+    if (spray) clearInterval(spray.timer);
+    spray = null;
   };
   canvas.addEventListener('pointerup', stop);
   canvas.addEventListener('pointercancel', stop);
+  // Also stops the airbrush if the window closes while spraying
+  canvas.addEventListener('lostpointercapture', stop);
+}
+
+// One puff of the airbrush: single pixels in the chosen color,
+// scattered at random over a circle around the point
+function sprayPaint(paint, point) {
+  const radius = SPRAY_RADII[SIZES.indexOf(paint.size)];
+  paint.ctx.fillStyle = paint.color;
+
+  for (let i = 0; i < radius * 2; i++) {
+    // The square root spreads the dots evenly over the circle,
+    // instead of bunching them up in the middle
+    const distance = radius * Math.sqrt(Math.random());
+    const angle = Math.random() * 2 * Math.PI;
+    const x = Math.round(point.x + distance * Math.cos(angle));
+    const y = Math.round(point.y + distance * Math.sin(angle));
+    paint.ctx.fillRect(x, y, 1, 1);
+  }
 }
 
 // Turns a pointer position on screen into a pixel of the picture.
