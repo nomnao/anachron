@@ -450,6 +450,68 @@
   -webkit-user-select: text;
 }
 
+/* Word Wrap off: long lines stay long, and the text scrolls sideways */
+.notepad-text[wrap="off"] {
+  overflow-x: auto;
+}
+
+/* The Find and Replace box: a small window in Notepad's top-right
+   corner that stays open while you work */
+.notepad-search {
+  position: absolute;
+  z-index: 3;
+  top: calc(var(--px) * 22);
+  right: calc(var(--px) * 4);
+  width: calc(var(--px) * 220);
+}
+
+/* Moved to the bottom, to uncover a match in the first lines */
+.notepad-search.is-low {
+  top: auto;
+  bottom: calc(var(--px) * 4);
+}
+
+.notepad-search .dialog-title {
+  justify-content: space-between;
+  padding-right: calc(var(--px) * 2);
+}
+
+.notepad-search .dialog-body {
+  gap: calc(var(--px) * 5);
+  padding: calc(var(--px) * 6);
+}
+
+.search-label {
+  width: calc(var(--px) * 66);
+}
+
+.search-case {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+}
+
+.search-case input {
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 12);
+  margin: 0;
+}
+
+.search-message {
+  min-height: calc(var(--px) * 13);
+  margin: 0;
+}
+
+.notepad-search .dialog-buttons {
+  flex-wrap: wrap;
+  gap: calc(var(--px) * 4);
+}
+
+.notepad-search .push-button {
+  min-width: calc(var(--px) * 52);
+  padding: 0 calc(var(--px) * 6);
+}
+
 /* ================= TASKBAR ================= */
 
 #taskbar {
