@@ -450,6 +450,9 @@ async function launchApp(app, options = {}) {
     icon: app.icon,
     width: size?.width ?? app.width,
     height: size?.height ?? app.height,
+    resizable: app.resizable !== false,
+    minWidth: app.minWidth,
+    minHeight: app.minHeight,
     content,
     beforeClose: () => (beforeClose ? beforeClose() : true),
     onClose: () => {

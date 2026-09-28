@@ -1,14 +1,21 @@
 // The window manager.
-// It is the only code that creates, moves, stacks, minimizes,
-// maximizes and closes windows.
-// Everything is measured in "virtual pixels" of a 640-pixel-wide screen.
+// It is the only code that creates, moves, resizes, stacks,
+// minimizes, maximizes and closes windows.
+// Everything is measured in "virtual pixels" (the CSS --px unit).
 
-const DESKTOP_WIDTH = 640;
 const TASKBAR_HEIGHT = 28;
 const DOUBLE_CLICK_MS = 450;
 
+// The smallest a window can be made by dragging its edges, unless
+// its app asks for more
+const MIN_WIDTH = 200;
+const MIN_HEIGHT = 120;
+
+// The edges and corners a window can be resized from
+const RESIZE_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
+
 // window id -> { id, title, icon, x, y, width, height, z, minimized, maximized, el,
-//                 onClose, beforeClose, closing }
+//                 resizable, minWidth, minHeight, onClose, beforeClose, closing }
 const windows = new Map();
 let activeId = null;
 let desktop = null;
@@ -55,7 +62,12 @@ function notify() {
 // false to keep the window open.
 // onClose (optional) runs when the window closes, so an app can
 // stop anything it started, like a webcam.
-export function openWindow({ id, title, icon, width, height, content, onClose, beforeClose }) {
+// resizable (true unless false) lets its edges be dragged, down to
+// minWidth x minHeight (optional).
+export function openWindow({
+  id, title, icon, width, height, content, onClose, beforeClose,
+  resizable = true, minWidth = MIN_WIDTH, minHeight = MIN_HEIGHT,
+}) {
   // Only one window per app for now: if it is already open, bring it back
   if (windows.has(id)) {
     restoreWindow(id);
@@ -69,6 +81,7 @@ export function openWindow({ id, title, icon, width, height, content, onClose, b
     id, title, icon,
     x: 110 + offset, y: 20 + offset, width, height,
     z: 0, minimized: false, maximized: false, el: null, onClose, beforeClose, closing: false,
+    resizable, minWidth: Math.min(minWidth, width), minHeight: Math.min(minHeight, height),
   };
 
   win.el = createWindowElement(win, content);
@@ -164,11 +177,10 @@ export function setWindowSize(id, width, height) {
   win.width = width;
   win.height = height;
 
-  const rect = desktop.getBoundingClientRect();
-  if (rect.width > 0) {
-    const desktopHeight = rect.height / (rect.width / DESKTOP_WIDTH) - TASKBAR_HEIGHT;
-    win.x = clamp(win.x, 0, Math.max(0, DESKTOP_WIDTH - width));
-    win.y = clamp(win.y, 0, Math.max(0, desktopHeight - height));
+  const screen = measureDesktop();
+  if (screen) {
+    win.x = clamp(win.x, 0, Math.max(0, screen.width - width));
+    win.y = clamp(win.y, 0, Math.max(0, screen.height - TASKBAR_HEIGHT - height));
   }
 
   applyGeometry(win);
@@ -324,6 +336,20 @@ function createWindowElement(win, content) {
     if (!win.maximized) startDrag(win, event);
   });
 
+  // Invisible strips along the edges and squares at the corners,
+  // to drag the window bigger or smaller
+  if (win.resizable) {
+    for (const edge of RESIZE_EDGES) {
+      const handle = document.createElement('div');
+      handle.className = `resize-handle resize-${edge}`;
+      handle.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0 || win.maximized) return;
+        startResize(win, edge, event);
+      });
+      el.append(handle);
+    }
+  }
+
   return el;
 }
 
@@ -349,10 +375,7 @@ function applyGeometry(win) {
 function startDrag(win, event) {
   event.preventDefault();
 
-  // How many real screen pixels one virtual pixel is right now
-  const rect = desktop.getBoundingClientRect();
-  const scale = rect.width / DESKTOP_WIDTH;
-  const desktopHeight = rect.height / scale;
+  const { scale, width: desktopWidth, height: desktopHeight } = measureDesktop();
 
   const startPointerX = event.clientX;
   const startPointerY = event.clientY;
@@ -367,7 +390,7 @@ function startDrag(win, event) {
     const dy = (moveEvent.clientY - startPointerY) / scale;
 
     // Keep enough of the title bar on screen to grab it again
-    win.x = clamp(startX + dx, 40 - win.width, DESKTOP_WIDTH - 40);
+    win.x = clamp(startX + dx, 40 - win.width, desktopWidth - 40);
     win.y = clamp(startY + dy, 0, desktopHeight - TASKBAR_HEIGHT - 18);
 
     applyGeometry(win);
@@ -382,6 +405,73 @@ function startDrag(win, event) {
   titleBar.addEventListener('pointermove', onMove);
   titleBar.addEventListener('pointerup', onEnd);
   titleBar.addEventListener('pointercancel', onEnd);
+}
+
+// ---------- Resizing ----------
+
+// Drags one edge (or two, at a corner) of the window. The opposite
+// edges stay where they are. The window can't get smaller than its
+// minimum size, or reach past the edges of the desktop.
+function startResize(win, edge, event) {
+  event.preventDefault();
+  event.stopPropagation();
+  focusWindow(win.id);
+
+  const screen = measureDesktop();
+  const { scale } = screen;
+  const desktopWidth = screen.width;
+  const desktopHeight = screen.height - TASKBAR_HEIGHT;
+
+  const startPointerX = event.clientX;
+  const startPointerY = event.clientY;
+  const start = { left: win.x, top: win.y, right: win.x + win.width, bottom: win.y + win.height };
+
+  const handle = event.currentTarget;
+  handle.setPointerCapture(event.pointerId);
+
+  function onMove(moveEvent) {
+    const dx = (moveEvent.clientX - startPointerX) / scale;
+    const dy = (moveEvent.clientY - startPointerY) / scale;
+    let { left, top, right, bottom } = start;
+
+    if (edge.includes('e')) right = clamp(start.right + dx, left + win.minWidth, Math.max(desktopWidth, right));
+    if (edge.includes('w')) left = clamp(start.left + dx, Math.min(0, left), right - win.minWidth);
+    if (edge.includes('s')) bottom = clamp(start.bottom + dy, top + win.minHeight, Math.max(desktopHeight, bottom));
+    if (edge.includes('n')) top = clamp(start.top + dy, 0, bottom - win.minHeight);
+
+    win.x = left;
+    win.y = top;
+    win.width = right - left;
+    win.height = bottom - top;
+    applyGeometry(win);
+  }
+
+  function onEnd() {
+    handle.removeEventListener('pointermove', onMove);
+    handle.removeEventListener('pointerup', onEnd);
+    handle.removeEventListener('pointercancel', onEnd);
+  }
+
+  handle.addEventListener('pointermove', onMove);
+  handle.addEventListener('pointerup', onEnd);
+  handle.addEventListener('pointercancel', onEnd);
+}
+
+// How many real screen pixels one virtual pixel is right now, and
+// the desktop's size in virtual pixels. One virtual pixel is measured
+// rather than worked out from the desktop's width, since the desktop
+// isn't exactly 640 of them wide. Gives back null while the desktop
+// isn't on screen.
+function measureDesktop() {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position: absolute; visibility: hidden; width: calc(var(--px) * 100);';
+  desktop.append(probe);
+  const scale = probe.getBoundingClientRect().width / 100;
+  probe.remove();
+
+  if (!scale) return null;
+  const rect = desktop.getBoundingClientRect();
+  return { scale, width: rect.width / scale, height: rect.height / scale };
 }
 
 function clamp(value, min, max) {

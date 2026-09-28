@@ -248,6 +248,35 @@
   left: 0;
 }
 
+/* Invisible handles for resizing: strips along the edges, squares
+   at the corners. They sit over the window's border. */
+.resize-handle {
+  position: absolute;
+  z-index: 2;
+  touch-action: none;
+}
+
+.resize-n, .resize-s { left: calc(var(--px) * 8); right: calc(var(--px) * 8); height: calc(var(--px) * 4); }
+.resize-e, .resize-w { top: calc(var(--px) * 8); bottom: calc(var(--px) * 8); width: calc(var(--px) * 4); }
+.resize-n { top: 0; cursor: ns-resize; }
+.resize-s { bottom: 0; cursor: ns-resize; }
+.resize-e { right: 0; cursor: ew-resize; }
+.resize-w { left: 0; cursor: ew-resize; }
+
+.resize-ne, .resize-nw, .resize-se, .resize-sw {
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 8);
+}
+.resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+.resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.resize-nw { top: 0; left: 0; cursor: nwse-resize; }
+.resize-se { bottom: 0; right: 0; cursor: nwse-resize; }
+
+/* A maximized window can't be resized */
+.window.is-maximized .resize-handle {
+  display: none;
+}
+
 /* A minimized window still exists, it is just hidden */
 .window.is-minimized {
   display: none;
