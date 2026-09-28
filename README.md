@@ -28,6 +28,10 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 - **Right-click the empty desktop** and choose **Arrange Icons** to sort your files **by Name**, **by Type**, **by Size** or **by Date** (newest first). The app icons are sorted along with your files (apps count as type *Application*, with no size or date). The icons stay sorted that way as you save, rename and delete files.
 - **The Recycle Bin** keeps deleted files until you're sure. Its icon fills up when something is in it. Open it to **Restore** a file to the desktop or **Delete** it for good, or right-click it and choose **Empty Recycle Bin**.
 
+### Coo the pigeon
+
+Coo lives in the bottom-right corner and knows its way around. Click Coo for a tip, and Coo pipes up now and then the first time you do something (open Minesweeper, delete a file...). Start a letter in Notepad with "Dear" and see what happens. Right-click Coo to hide it; **Show Coo** in the Start menu brings it back.
+
 ### The apps
 
 | App | What it does |

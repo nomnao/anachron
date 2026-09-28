@@ -1,13 +1,14 @@
 // The Start menu: pops up above the Start button with every app,
-// and Shut Down at the bottom.
+// Coo the pigeon (to show or hide it), and Shut Down at the bottom.
 
 const SHUT_DOWN_ICON = 'assets/icons/shutdown.svg';
 
 // apps       - the list of apps to show (from app.js)
 // onLaunch   - called with an app when it is chosen
 // onShutDown - called when Shut Down is chosen
+// assistant  - { icon, isHidden(), toggle() } for the Show/Hide Coo item
 // Returns a function that cleans up when the desktop goes away.
-export function setUpStartMenu(desktop, { apps, onLaunch, onShutDown }) {
+export function setUpStartMenu(desktop, { apps, onLaunch, onShutDown, assistant }) {
   const startButton = desktop.querySelector('#start-button');
 
   const menu = document.createElement('div');
@@ -23,6 +24,10 @@ export function setUpStartMenu(desktop, { apps, onLaunch, onShutDown }) {
         </button>
       `).join('')}
       <div class="start-separator"></div>
+      <button class="start-item" data-command="assistant">
+        <img src="${assistant.icon}" alt="">
+        <span></span>
+      </button>
       <button class="start-item" data-command="shut-down">
         <img src="${SHUT_DOWN_ICON}" alt="">
         <span>Sh<u>u</u>t Down...</span>
@@ -34,6 +39,10 @@ export function setUpStartMenu(desktop, { apps, onLaunch, onShutDown }) {
   function setOpen(open) {
     menu.hidden = !open;
     startButton.classList.toggle('is-pressed', open);
+    if (open) {
+      menu.querySelector('[data-command="assistant"] span').textContent =
+        assistant.isHidden() ? 'Show Coo' : 'Hide Coo';
+    }
   }
 
   startButton.addEventListener('click', () => setOpen(menu.hidden));
@@ -45,6 +54,8 @@ export function setUpStartMenu(desktop, { apps, onLaunch, onShutDown }) {
     setOpen(false);
     if (item.dataset.command === 'shut-down') {
       onShutDown();
+    } else if (item.dataset.command === 'assistant') {
+      assistant.toggle();
     } else {
       onLaunch(apps.find((app) => app.id === item.dataset.appId));
     }

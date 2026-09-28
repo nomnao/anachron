@@ -3,6 +3,7 @@
 
 import { showConfirmDialog } from './dialogs.js';
 import { recycleFile, listRecycled, emptyRecycleBin } from '../system/fs.js';
+import { tellAssistant } from './assistant.js';
 
 // Deleting a file: asks first, then sends it to the Recycle Bin,
 // where it can still be restored.
@@ -15,7 +16,10 @@ export async function confirmRecycle(container, name) {
     cancelLabel: 'No',
   });
 
-  if (confirmed) await recycleFile(name);
+  if (confirmed) {
+    await recycleFile(name);
+    tellAssistant('recycle');
+  }
   return confirmed;
 }
 

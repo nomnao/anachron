@@ -6,6 +6,7 @@
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog, showSaveAsDialog, showSaveChangesDialog } from '../shell/dialogs.js';
 import { readFile, writeFile, onFileRenamed } from '../system/fs.js';
+import { tellAssistant } from '../shell/assistant.js';
 
 // Word Wrap is on or off in every Notepad, and remembered
 const WRAP_STORAGE_KEY = 'anachron.notepad-wrap';
@@ -81,7 +82,11 @@ export function createApp(context) {
 
   setUpMenuBar(root.querySelector('.menu-bar'), (command) => runCommand(command, notepad));
 
-  notepad.text.addEventListener('input', () => { notepad.changed = true; });
+  notepad.text.addEventListener('input', () => {
+    notepad.changed = true;
+    // Starting a letter with "Dear" brings Coo the pigeon over
+    if (/^\s*dear\s/i.test(notepad.text.value)) tellAssistant('writing-letter');
+  });
 
   // Closing with unsaved typing asks to save it first
   context.beforeClose(() => askToSave(notepad));

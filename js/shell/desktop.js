@@ -15,6 +15,7 @@ import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
 import { setUpStartMenu } from './start-menu.js';
 import { setUpCalendar, formatLongDate } from './calendar.js';
+import { setUpAssistant, tellAssistant, toggleAssistant, isAssistantHidden } from './assistant.js';
 import { exportFile, importFiles, chooseFilesToImport } from './transfer.js';
 import {
   currentDisplaySettings, saveDisplaySettings, onDisplaySettingsChanged, paintBackground, labelTextColor,
@@ -67,7 +68,11 @@ export function showDesktop(screen, { onShutDown }) {
     apps: LISTED_APPS,
     onLaunch: launchApp,
     onShutDown: () => confirmShutDown(desktop, onShutDown),
+    assistant: { icon: 'assets/icons/pigeon.svg', isHidden: isAssistantHidden, toggle: toggleAssistant },
   }));
+
+  // Coo the pigeon, with tips in the corner
+  cleanups.push(setUpAssistant(desktop));
 
   // Clicking the clock shows a calendar
   cleanups.push(setUpCalendar(desktop));
@@ -444,6 +449,7 @@ async function launchApp(app, options = {}) {
 
   openWindows.set(id, handle);
   trackEvent(`open-${app.id}`);
+  tellAssistant(`open-${app.id}`);
   openWindow({
     id,
     title,
