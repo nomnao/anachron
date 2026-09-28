@@ -51,6 +51,18 @@
   grid-auto-columns: calc(var(--px) * 76);
 }
 
+/* Files from the real computer being dragged over the screen */
+#desktop.is-drop-target::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--px) * 2);
+  z-index: 30000;
+  border: calc(var(--px) * 2) dashed #ffffff;
+  outline: calc(var(--px) * 2) dashed #000000;
+  outline-offset: calc(var(--px) * -4);
+  pointer-events: none;
+}
+
 /* The color, pattern and wallpaper chosen in Display Properties,
    behind everything else. Pictures keep their chunky pixels. */
 #wallpaper {
@@ -234,6 +246,35 @@
 .window.is-maximized .glyph-max::after {
   bottom: 0;
   left: 0;
+}
+
+/* Invisible handles for resizing: strips along the edges, squares
+   at the corners. They sit over the window's border. */
+.resize-handle {
+  position: absolute;
+  z-index: 2;
+  touch-action: none;
+}
+
+.resize-n, .resize-s { left: calc(var(--px) * 8); right: calc(var(--px) * 8); height: calc(var(--px) * 4); }
+.resize-e, .resize-w { top: calc(var(--px) * 8); bottom: calc(var(--px) * 8); width: calc(var(--px) * 4); }
+.resize-n { top: 0; cursor: ns-resize; }
+.resize-s { bottom: 0; cursor: ns-resize; }
+.resize-e { right: 0; cursor: ew-resize; }
+.resize-w { left: 0; cursor: ew-resize; }
+
+.resize-ne, .resize-nw, .resize-se, .resize-sw {
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 8);
+}
+.resize-ne { top: 0; right: 0; cursor: nesw-resize; }
+.resize-sw { bottom: 0; left: 0; cursor: nesw-resize; }
+.resize-nw { top: 0; left: 0; cursor: nwse-resize; }
+.resize-se { bottom: 0; right: 0; cursor: nwse-resize; }
+
+/* A maximized window can't be resized */
+.window.is-maximized .resize-handle {
+  display: none;
 }
 
 /* A minimized window still exists, it is just hidden */
@@ -1318,8 +1359,6 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: auto;
   padding: calc(var(--px) * 4);
   background: #808080;
@@ -1330,6 +1369,10 @@
 
 .viewer-image {
   flex-shrink: 0;
+  /* Centered when it fits. (Centering with the flex box instead
+     would push a picture bigger than the window out past its top
+     and left edges, where scrolling can't reach.) */
+  margin: auto;
   image-rendering: pixelated;
 }
 
@@ -1338,7 +1381,7 @@
 }
 
 .viewer-missing {
-  margin: 0;
+  margin: auto;
   color: #ffffff;
 }
 

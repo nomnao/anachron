@@ -19,7 +19,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 
 ### The desktop
 
-- **Windows** can be dragged by their title bar, minimized, maximized (or double-click the title bar) and closed. Every open window has a button on the taskbar; click it to bring the window back or hide it.
+- **Windows** can be dragged by their title bar, resized by dragging an edge or corner, minimized, maximized (or double-click the title bar) and closed. Minesweeper and Display Properties keep their size, like the real thing. Every open window has a button on the taskbar; click it to bring the window back or hide it.
 - **The Start menu** lists every app, and has **Shut Down...** at the bottom.
 - **Display Properties** (right-click the empty desktop and choose **Properties**) changes the desktop: pick one of 16 **colors**, a classic 8×8 **pattern**, and a **wallpaper** from any picture you've saved in Paint or Camera, centered, tiled or stretched. The little screen shows it first; press **Apply** or **OK** to put it on the desktop. Right-click a picture and choose **Set as Wallpaper** to use it straight away.
 - **The clock** in the bottom-right corner shows the time; point at it to see the date, or click it for a **calendar**. The arrows go to other months, and the date at the bottom comes back to today.
@@ -70,6 +70,13 @@ Photos and videos have the same chunky-pixel look as Paint, and a photo is exact
 | Enter | Open the selected file in My Files, or restore it in the Recycle Bin |
 | ↑ / ↓ | Move through the list in My Files and the Recycle Bin |
 | Esc | Close the Start menu or a dialog, or cancel renaming |
+
+## Moving files to and from your computer
+
+- **Save to My Computer:** right-click a file (on the desktop or in My Files) and choose **Save to My Computer**. It downloads like any file from a website: text as `.txt`, pictures as `.png`, videos as they were recorded.
+- **Import:** drag files from your computer onto the ANACHRON screen, or right-click the empty desktop (or use My Files' File menu) and choose **Import Files...**. Text files open in Notepad, pictures (JPEG, PNG, GIF, WebP...) become PNG pictures you can edit in Paint or use as wallpaper, and videos play in the Video Player. Big pictures are shrunk to fit the 640 × 480 screen. A file whose name is taken gets a number, like `photo (2).png`.
+
+Saving your work to your computer is the way to keep it safe, since the browser can lose its files (see below).
 
 ## Where your files are kept
 

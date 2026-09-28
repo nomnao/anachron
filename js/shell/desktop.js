@@ -15,6 +15,7 @@ import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
 import { setUpStartMenu } from './start-menu.js';
 import { setUpCalendar, formatLongDate } from './calendar.js';
+import { exportFile, importFiles, chooseFilesToImport } from './transfer.js';
 import {
   currentDisplaySettings, saveDisplaySettings, onDisplaySettingsChanged, paintBackground, labelTextColor,
 } from './background.js';
@@ -56,6 +57,7 @@ export function showDesktop(screen, { onShutDown }) {
   initWindowManager(desktop);
   setUpBackground(desktop);
   createIcons(desktop);
+  setUpDropping(desktop);
 
   // Redraw the taskbar buttons whenever a window opens, closes,
   // gets focus, or is minimized
@@ -153,6 +155,7 @@ function createIcons(desktop) {
         action: () => arrangeIcons(order.id),
       })) },
       { separator: true },
+      { label: 'Import Files...', action: () => chooseFilesToImport(desktop) },
       { label: 'Properties', action: () => launchApp(APPS.find((app) => app.id === 'display')) },
     ]);
   });
@@ -210,6 +213,7 @@ function renderFileIcons() {
         { label: 'Open', action: open },
         // Any picture can go on the desktop
         ...(file.type === 'image' ? [{ label: 'Set as Wallpaper', action: () => setAsWallpaper(file.name) }] : []),
+        { label: 'Save to My Computer', action: () => exportFile(document.querySelector('#desktop'), file.name) },
         { label: 'Rename', action: () => renameIcon(icon) },
         { label: 'Delete', action: () => confirmDelete(file.name) },
       ]);
@@ -220,6 +224,34 @@ function renderFileIcons() {
 
   document.querySelector('#file-icons').replaceChildren(...icons);
   applyIconOrder();
+}
+
+// ---------- Files from the real computer ----------
+
+// Files dragged from the real computer can be dropped anywhere on
+// the screen (the desktop or a window) to import them. While they're
+// over it, the screen gets a dotted edge.
+function setUpDropping(desktop) {
+  const hasFiles = (event) => event.dataTransfer?.types.includes('Files');
+
+  desktop.addEventListener('dragover', (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'copy';
+    desktop.classList.add('is-drop-target');
+  });
+
+  desktop.addEventListener('dragleave', (event) => {
+    // Only when leaving the whole desktop, not moving between its parts
+    if (!desktop.contains(event.relatedTarget)) desktop.classList.remove('is-drop-target');
+  });
+
+  desktop.addEventListener('drop', (event) => {
+    if (!hasFiles(event)) return;
+    event.preventDefault();
+    desktop.classList.remove('is-drop-target');
+    importFiles(desktop, [...event.dataTransfer.files]);
+  });
 }
 
 // ---------- Background ----------
@@ -418,6 +450,9 @@ async function launchApp(app, options = {}) {
     icon: app.icon,
     width: size?.width ?? app.width,
     height: size?.height ?? app.height,
+    resizable: app.resizable !== false,
+    minWidth: app.minWidth,
+    minHeight: app.minHeight,
     content,
     beforeClose: () => (beforeClose ? beforeClose() : true),
     onClose: () => {

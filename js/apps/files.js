@@ -1,6 +1,7 @@
 // My Files: every saved file in one list, with its type and size.
 // Double-click (or Enter) opens a file in its own app;
-// Delete sends it to the Recycle Bin. Click a column title to sort
+// Delete sends it to the Recycle Bin. Files can also be saved to,
+// or imported from, the real computer. Click a column title to sort
 // by that column, and again to reverse the order. The list updates
 // by itself whenever a file is saved or deleted anywhere.
 
@@ -12,6 +13,7 @@ import { renameInPlace } from '../shell/rename.js';
 import { listFiles, onFilesChanged, fileSize } from '../system/fs.js';
 import { fileEntry, sortByEntry, setUpColumnSorting } from '../shell/sort-files.js';
 import { confirmRecycle } from '../shell/recycle.js';
+import { exportFile, chooseFilesToImport } from '../shell/transfer.js';
 
 // Where the column the list is sorted by is kept for next time
 const SORT_STORAGE_KEY = 'anachron.files-sort';
@@ -30,8 +32,11 @@ export function createApp(context) {
         <button class="menu-title"><u>F</u>ile</button>
         <div class="menu-items">
           <button data-command="open"><u>O</u>pen</button>
+          <button data-command="export">Save to My <u>C</u>omputer</button>
           <button data-command="rename">Rena<u>m</u>e</button>
           <button data-command="delete"><u>D</u>elete</button>
+          <div class="menu-separator"></div>
+          <button data-command="import"><u>I</u>mport Files...</button>
         </div>
       </div>
     </div>
@@ -76,6 +81,8 @@ export function createApp(context) {
 
   setUpMenuBar(root.querySelector('.menu-bar'), (command) => {
     if (command === 'open') openSelected(explorer);
+    if (command === 'export') exportSelected(explorer);
+    if (command === 'import') chooseFilesToImport(root);
     if (command === 'rename') renameSelected(explorer);
     if (command === 'delete') deleteSelected(explorer);
   });
@@ -161,6 +168,7 @@ function setUpRows(explorer) {
     select(explorer, row.dataset.name);
     showContextMenu(event, [
       { label: 'Open', action: () => openSelected(explorer) },
+      { label: 'Save to My Computer', action: () => exportSelected(explorer) },
       { label: 'Rename', action: () => renameSelected(explorer) },
       { label: 'Delete', action: () => deleteSelected(explorer) },
     ]);
@@ -207,6 +215,11 @@ function moveSelection(explorer, step) {
 
 function openSelected(explorer) {
   if (explorer.selectedName) explorer.openFile(explorer.selectedName);
+}
+
+// Downloads the selected file to the real computer
+function exportSelected(explorer) {
+  if (explorer.selectedName) exportFile(explorer.root, explorer.selectedName);
 }
 
 // Turns the selected file's name into a text box to type a new name.
