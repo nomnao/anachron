@@ -71,6 +71,13 @@ Photos and videos have the same chunky-pixel look as Paint, and a photo is exact
 | ↑ / ↓ | Move through the list in My Files and the Recycle Bin |
 | Esc | Close the Start menu or a dialog, or cancel renaming |
 
+## Moving files to and from your computer
+
+- **Save to My Computer:** right-click a file (on the desktop or in My Files) and choose **Save to My Computer**. It downloads like any file from a website: text as `.txt`, pictures as `.png`, videos as they were recorded.
+- **Import:** drag files from your computer onto the ANACHRON screen, or right-click the empty desktop (or use My Files' File menu) and choose **Import Files...**. Text files open in Notepad, pictures (JPEG, PNG, GIF, WebP...) become PNG pictures you can edit in Paint or use as wallpaper, and videos play in the Video Player. Big pictures are shrunk to fit the 640 × 480 screen. A file whose name is taken gets a number, like `photo (2).png`.
+
+Saving your work to your computer is the way to keep it safe, since the browser can lose its files (see below).
+
 ## Where your files are kept
 
 Your files never leave your computer. They are stored in your browser: text and pictures in its local storage, and videos in its built-in database (IndexedDB), which has room for bigger files.

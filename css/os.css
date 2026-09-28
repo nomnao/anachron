@@ -51,6 +51,18 @@
   grid-auto-columns: calc(var(--px) * 76);
 }
 
+/* Files from the real computer being dragged over the screen */
+#desktop.is-drop-target::after {
+  content: '';
+  position: absolute;
+  inset: calc(var(--px) * 2);
+  z-index: 30000;
+  border: calc(var(--px) * 2) dashed #ffffff;
+  outline: calc(var(--px) * 2) dashed #000000;
+  outline-offset: calc(var(--px) * -4);
+  pointer-events: none;
+}
+
 /* The color, pattern and wallpaper chosen in Display Properties,
    behind everything else. Pictures keep their chunky pixels. */
 #wallpaper {
@@ -1318,8 +1330,6 @@
   flex: 1;
   min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
   overflow: auto;
   padding: calc(var(--px) * 4);
   background: #808080;
@@ -1330,6 +1340,10 @@
 
 .viewer-image {
   flex-shrink: 0;
+  /* Centered when it fits. (Centering with the flex box instead
+     would push a picture bigger than the window out past its top
+     and left edges, where scrolling can't reach.) */
+  margin: auto;
   image-rendering: pixelated;
 }
 
@@ -1338,7 +1352,7 @@
 }
 
 .viewer-missing {
-  margin: 0;
+  margin: auto;
   color: #ffffff;
 }
 

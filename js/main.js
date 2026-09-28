@@ -6,6 +6,15 @@ const monitor = document.querySelector('#monitor');
 const crtScreen = document.querySelector('#crt-screen');
 const powerButton = document.querySelector('#power-button');
 
+// A file dragged from the computer and dropped outside the desktop
+// (on the monitor's edge, or while it's off) would make the browser
+// leave ANACHRON to show that file. Dropping it there does nothing.
+for (const type of ['dragover', 'drop']) {
+  window.addEventListener(type, (event) => {
+    if (event.dataTransfer?.types.includes('Files')) event.preventDefault();
+  });
+}
+
 // 'off' -> 'booting' -> 'desktop' -> 'shutting-down' -> 'halted' -> 'off'
 let systemState = 'off';
 
