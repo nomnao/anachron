@@ -1931,7 +1931,17 @@
   padding: 0;
   border: none;
   background: none;
-  cursor: pointer;
+  cursor: grab;
+  touch-action: none;
+}
+
+/* Being carried: Coo flaps the whole time */
+.assistant-bird.is-carried {
+  cursor: grabbing;
+}
+
+.assistant-bird.is-carried .assistant-wing {
+  animation: coo-flap 0.3s steps(1) infinite;
 }
 
 .assistant-bird svg {
@@ -2019,6 +2029,29 @@
 }
 
 /* Each choice has a blue dot in front, and underlines when pointed at */
+/* Below Coo instead, when there's no room above: the tail points up */
+.assistant-balloon.is-below {
+  top: calc(100% + var(--px) * 10);
+  bottom: auto;
+}
+
+.assistant-balloon.is-below::after {
+  top: calc(var(--px) * -8);
+  bottom: auto;
+  transform: skewX(30deg) rotate(225deg);
+}
+
+/* To Coo's right instead, when there's no room on the left */
+.assistant-balloon.is-right {
+  left: 0;
+  right: auto;
+}
+
+.assistant-balloon.is-right::after {
+  left: calc(var(--px) * 22);
+  right: auto;
+}
+
 .assistant-choice {
   position: relative;
   padding: calc(var(--px) * 1) 0 calc(var(--px) * 1) calc(var(--px) * 12);

@@ -30,7 +30,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 
 ### Coo the pigeon
 
-Coo lives in the bottom-right corner and knows its way around. Click Coo for a tip, and Coo pipes up now and then the first time you do something (open Minesweeper, delete a file...). Start a letter in Notepad with "Dear" and see what happens. Right-click Coo to hide it; **Show Coo** in the Start menu brings it back.
+Coo lives in the bottom-right corner and knows its way around. Click Coo for a tip, and Coo pipes up now and then the first time you do something (open Minesweeper, delete a file...). Start a letter in Notepad with "Dear" and see what happens. Drag Coo anywhere on the desktop and it stays there (right-click and choose **Move Back to Corner** to send it home). Right-click Coo to hide it; **Show Coo** in the Start menu brings it back.
 
 ### The apps
 

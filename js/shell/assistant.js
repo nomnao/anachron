@@ -7,6 +7,7 @@
 //     (open Minesweeper, delete a file...). Apps tell Coo with
 //     tellAssistant('open-paint') and the like.
 //   - Start a Notepad letter with "Dear" and Coo offers to help.
+//   - Drag Coo anywhere on the desktop; it stays there.
 //   - Right-click Coo to hide it; the Start menu brings it back.
 
 import { showContextMenu } from './context-menu.js';
@@ -15,6 +16,15 @@ const STORAGE_KEY = 'anachron.assistant';
 
 // How long a balloon stays up if nobody answers it
 const BALLOON_MS = 20000;
+
+// Where Coo sits unless dragged somewhere else: this far from the
+// desktop's right and bottom edges, in virtual pixels
+const HOME = { right: 10, bottom: 32 };
+const TASKBAR_HEIGHT = 28;
+
+// A press that moves further than this (in screen pixels) is a drag,
+// not a click
+const DRAG_THRESHOLD = 4;
 
 // Tips for clicking Coo, one picked at random each time
 const TIPS = [
@@ -45,7 +55,8 @@ const MOMENTS = {
 
 // ---------- Remembering ----------
 
-// { hidden, greeted, seen: [moment names already said] }
+// { hidden, greeted, seen: [moment names already said],
+//   position: { right, bottom } once dragged }
 function loadState() {
   try {
     return { hidden: false, greeted: false, seen: [], ...JSON.parse(localStorage.getItem(STORAGE_KEY)) };
@@ -94,14 +105,25 @@ export function setUpAssistant(desktop) {
   el.addEventListener('mousedown', (event) => event.preventDefault());
 
   const bird = el.querySelector('.assistant-bird');
-  bird.addEventListener('click', () => sayTip());
+  bird.addEventListener('click', () => {
+    // The click at the end of a drag isn't a click on Coo
+    if (coo.justDragged) {
+      coo.justDragged = false;
+      return;
+    }
+    sayTip();
+  });
   bird.addEventListener('contextmenu', (event) => {
     event.preventDefault();
     showContextMenu(event, [
       { label: 'Show a Tip', action: sayTip },
+      { label: 'Move Back to Corner', action: () => moveTo(HOME, true) },
+      { separator: true },
       { label: 'Hide Coo', action: () => setHidden(true) },
     ]);
   });
+  setUpDragging(desktop, bird);
+  moveTo(state.position ?? HOME, false);
 
   // Blinks, bobs its head and flaps now and then, so Coo looks alive
   const moves = ['is-blinking', 'is-blinking', 'is-bobbing', 'is-flapping'];
@@ -202,6 +224,7 @@ function say(text, choices = [{ label: 'OK' }]) {
     return button;
   }));
   balloon.hidden = false;
+  placeBalloon();
   wiggle('is-hopping');
 
   clearTimeout(coo.balloonTimer);
@@ -218,6 +241,111 @@ function setHidden(hidden) {
   if (!coo) return;
   closeBalloon();
   coo.el.hidden = hidden;
+  // Coming back, make sure it's still on screen
+  if (!hidden) moveTo(currentPosition(), false);
+}
+
+// ---------- Moving Coo ----------
+
+// Press and drag Coo to move it. While it's carried, it flaps.
+function setUpDragging(desktop, bird) {
+  bird.addEventListener('pointerdown', (event) => {
+    if (event.button !== 0) return;
+
+    const start = { x: event.clientX, y: event.clientY, ...currentPosition() };
+    const { scale } = measureDesktop(desktop);
+    let dragging = false;
+    bird.setPointerCapture(event.pointerId);
+
+    function onMove(moveEvent) {
+      const dx = moveEvent.clientX - start.x;
+      const dy = moveEvent.clientY - start.y;
+      if (!dragging && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+
+      if (!dragging) {
+        dragging = true;
+        bird.classList.add('is-carried');
+      }
+      // Right and bottom grow as Coo moves left and up
+      moveTo({ right: start.right - dx / scale, bottom: start.bottom - dy / scale }, false);
+    }
+
+    function onEnd() {
+      bird.removeEventListener('pointermove', onMove);
+      bird.removeEventListener('pointerup', onEnd);
+      bird.removeEventListener('pointercancel', onEnd);
+      if (!dragging) return;
+
+      bird.classList.remove('is-carried');
+      coo.justDragged = true;
+      // A click doesn't follow a drag on every browser, so don't
+      // let the flag wait for one forever
+      setTimeout(() => { if (coo) coo.justDragged = false; }, 0);
+      moveTo(currentPosition(), true);
+      wiggle('is-hopping');
+    }
+
+    bird.addEventListener('pointermove', onMove);
+    bird.addEventListener('pointerup', onEnd);
+    bird.addEventListener('pointercancel', onEnd);
+  });
+}
+
+// Puts Coo at { right, bottom } (virtual pixels from the desktop's
+// right and bottom edges), kept on screen and off the taskbar.
+// remember keeps the spot for next time.
+function moveTo(position, remember) {
+  if (!coo) return;
+  const { el } = coo;
+  const desktop = el.parentElement;
+  const screen = measureDesktop(desktop);
+  const size = { width: el.offsetWidth / screen.scale, height: el.offsetHeight / screen.scale };
+
+  let { right, bottom } = position;
+  if (screen.width) {
+    right = Math.min(Math.max(right, 0), Math.max(0, screen.width - size.width));
+    bottom = Math.min(Math.max(bottom, TASKBAR_HEIGHT + 2), Math.max(TASKBAR_HEIGHT + 2, screen.height - size.height));
+  }
+
+  el.style.right = `calc(var(--px) * ${right})`;
+  el.style.bottom = `calc(var(--px) * ${bottom})`;
+  coo.position = { right, bottom };
+  if (!coo.balloon.hidden) placeBalloon();
+
+  if (remember) {
+    // Back in its corner, Coo just goes home next time too
+    state.position = right === HOME.right && bottom === HOME.bottom ? undefined : { right, bottom };
+    saveState();
+  }
+}
+
+function currentPosition() {
+  return coo.position ?? HOME;
+}
+
+// The balloon goes above Coo and to its left, unless that would run
+// off the screen: then below, or to the right, instead
+function placeBalloon() {
+  const { el, balloon } = coo;
+  balloon.classList.remove('is-below', 'is-right');
+  const area = el.parentElement.getBoundingClientRect();
+  const bird = el.getBoundingClientRect();
+  const size = balloon.getBoundingClientRect();
+
+  if (bird.top - size.height - 12 < area.top) balloon.classList.add('is-below');
+  if (bird.right - size.width < area.left) balloon.classList.add('is-right');
+}
+
+// How many screen pixels one virtual pixel is, and the desktop's
+// size in virtual pixels (measured, as the window manager does)
+function measureDesktop(desktop) {
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position: absolute; visibility: hidden; width: calc(var(--px) * 100);';
+  desktop.append(probe);
+  const scale = probe.getBoundingClientRect().width / 100 || 1;
+  probe.remove();
+  const rect = desktop.getBoundingClientRect();
+  return { scale, width: rect.width / scale, height: rect.height / scale };
 }
 
 // Plays one of the pigeon's little animations (see .assistant in os.css)
