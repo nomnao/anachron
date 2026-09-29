@@ -2,7 +2,7 @@
 
 The nineties never left. They moved into your browser.
 
-ANACHRON is a fictional 1990s operating system, complete with a beige CRT monitor: press the power button, watch it boot, and you get a desktop with windows, a Start menu and working apps. You can write notes, draw pictures, take photos with your webcam and record short videos, and everything you save stays on the computer's desktop.
+ANACHRON is a fictional 1990s operating system, complete with a beige CRT monitor: press the power button, watch it boot, and you get a desktop with windows, a Start menu and working apps. You can write notes, draw pictures, take photos with your webcam, record short videos and play Minesweeper and Solitaire, and everything you save stays on the computer's desktop.
 
 **Try it:** https://nomnao.github.io/anachron/
 
@@ -24,7 +24,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 - **Display Properties** (right-click the empty desktop and choose **Properties**) changes the desktop: pick one of 16 **colors**, a classic 8×8 **pattern**, and a **wallpaper** from any picture you've saved in Paint or Camera, centered, tiled or stretched. The little screen shows it first; press **Apply** or **OK** to put it on the desktop. Right-click a picture and choose **Set as Wallpaper** to use it straight away.
 - **The clock** in the bottom-right corner shows the time; point at it to see the date, or click it for a **calendar**. The arrows go to other months, and the date at the bottom comes back to today.
 - **Saved files** appear as icons on the desktop. Double-click one to open it.
-- **Right-click** a file for **Open**, **Rename** and **Delete**.
+- **Right-click** a file for **Open**, **Rename**, **Delete** and **Save to My Computer**. Pictures also have **Set as Wallpaper**.
 - **Drag a file onto the Recycle Bin** (its icon, or its open window) to delete it. Files in My Files can be dragged there too.
 - **Right-click the empty desktop** and choose **Arrange Icons** to sort your files **by Name**, **by Type**, **by Size** or **by Date** (newest first). The app icons are sorted along with your files (apps count as type *Application*, with no size or date). The icons stay sorted that way as you save, rename and delete files.
 - **The Recycle Bin** keeps deleted files until you're sure. Its icon fills up when something is in it. Open it to **Restore** a file to the desktop or **Delete** it for good, or right-click it and choose **Empty Recycle Bin**.
@@ -80,7 +80,7 @@ Photos and videos have the same chunky-pixel look as Paint, and a photo is exact
 | Delete (or Backspace) | Send the selected file to the Recycle Bin, after asking (in the Recycle Bin: delete it for good) |
 | Enter | Open the selected file in My Files, or restore it in the Recycle Bin |
 | ↑ / ↓ | Move through the list in My Files and the Recycle Bin |
-| Esc | Close the Start menu or a dialog, or cancel renaming |
+| Esc | Close the Start menu, a right-click menu, the calendar, a dialog or Notepad's Find box, or cancel renaming |
 
 ## Moving files to and from your computer
 
