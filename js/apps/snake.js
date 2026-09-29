@@ -2,7 +2,8 @@
 // longer. Don't hit the walls or your own tail!
 //
 // - The arrow keys (or W A S D) steer. On a phone, swipe the board.
-// - P or the space bar pauses. F2 starts a new game.
+// - P or the space bar pauses. F2 or N starts a new game, and so do
+//   the space bar and Enter once the game is over.
 // - Three speeds in the Game menu; faster speeds score more per apple.
 //
 // The board is a tiny canvas, one canvas pixel per virtual pixel,
@@ -123,7 +124,10 @@ export function createApp(context) {
     if (direction) {
       event.preventDefault();
       steer(game, direction);
-    } else if (event.key === 'F2') {
+    } else if (event.key === 'F2' || event.key.toLowerCase() === 'n'
+      || (game.state === 'over' && (event.key === ' ' || event.key === 'Enter'))) {
+      // On a Mac, F2 changes the screen brightness unless you hold fn,
+      // so N, and the space bar or Enter after a game, start one too
       event.preventDefault();
       newGame(game);
     } else if (event.key === ' ' || event.key.toLowerCase() === 'p') {
@@ -288,7 +292,7 @@ async function gameOver(game, filledBoard = false) {
   }
 
   const title = filledBoard ? 'You filled the board!' : 'Game Over';
-  showMessage(game, `${title}\nPress F2 to play again`);
+  showMessage(game, `${title}\nPress Space to play again`);
 
   if (newBest) {
     await showConfirmDialog(game.root, {

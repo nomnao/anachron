@@ -64,7 +64,7 @@ const BACKS = {
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'solitaire';
-  // Lets the window receive key presses (F2, Ctrl+Z)
+  // Lets the window receive key presses (F2 or N, Ctrl+Z)
   root.tabIndex = -1;
 
   root.innerHTML = `
@@ -143,7 +143,9 @@ export function createApp(context) {
       stopCascade(game);
       return;
     }
-    if (event.key === 'F2') {
+    // F2 deals, like Windows. On a Mac, F2 changes the screen
+    // brightness unless you hold fn, so N does it too.
+    if (event.key === 'F2' || (event.key.toLowerCase() === 'n' && !ctrl && !event.altKey)) {
       event.preventDefault();
       deal(game);
     }
@@ -432,6 +434,10 @@ function setUpDragging(game) {
 
   table.addEventListener('pointerdown', (event) => {
     game.root.focus({ preventScroll: true });
+    // Stop the browser moving focus itself: a card turned over here
+    // gets a new picture, and focus would be lost with the old one
+    // (then keys like F2 and Ctrl+Z stop working)
+    event.preventDefault();
     if (event.button !== 0) return;
 
     // Clicking during the bouncing cards stops them

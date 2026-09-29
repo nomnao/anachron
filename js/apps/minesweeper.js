@@ -58,7 +58,7 @@ const WRONG_FLAG = MINE.replace('</svg>', '<path d="M1 1l10 10M11 1L1 11" stroke
 export function createApp(context) {
   const root = document.createElement('div');
   root.className = 'minesweeper';
-  // Lets the window receive key presses (F2)
+  // Lets the window receive key presses (F2 or N)
   root.tabIndex = -1;
 
   root.innerHTML = `
@@ -120,7 +120,10 @@ export function createApp(context) {
 
   root.addEventListener('keydown', (event) => {
     if (root.querySelector('.dialog-overlay')) return;
-    if (event.key === 'F2') {
+    // F2 starts a new game, like Windows. On a Mac, F2 changes the
+    // screen brightness unless you hold fn, so N does it too.
+    const plainN = event.key.toLowerCase() === 'n' && !event.ctrlKey && !event.metaKey && !event.altKey;
+    if (event.key === 'F2' || plainN) {
       event.preventDefault();
       newGame(game);
     }
