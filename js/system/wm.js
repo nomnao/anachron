@@ -98,6 +98,18 @@ export function openWindow({
 
   applyGeometry(win);
   focusWindow(id);
+  giveKeyboardTo(win);
+}
+
+// Moves the keyboard into a window that has just come to the front
+// (opened, or brought back from the taskbar), so typing goes to it
+// and not to whatever had the keyboard before, like a desktop icon.
+// Notepad's text area gets it, or else the app's own area, or else
+// the window itself.
+function giveKeyboardTo(win) {
+  if (win.el.contains(document.activeElement)) return;
+  const target = win.el.querySelector('.window-body textarea, .window-body [tabindex="-1"]') ?? win.el;
+  target.focus({ preventScroll: true });
 }
 
 export function hasWindow(id) {
@@ -254,6 +266,7 @@ export function restoreWindow(id) {
   win.minimized = false;
   win.el.classList.remove('is-minimized');
   focusWindow(id);
+  giveKeyboardTo(win);
 }
 
 export function toggleMaximize(id) {
@@ -284,6 +297,7 @@ export function taskbarClick(id) {
     minimizeWindow(id);
   } else {
     focusWindow(id);
+    giveKeyboardTo(win);
   }
 }
 
@@ -292,6 +306,8 @@ export function taskbarClick(id) {
 function createWindowElement(win, content) {
   const el = document.createElement('div');
   el.className = 'window';
+  // Lets the window itself hold the keyboard (see giveKeyboardTo)
+  el.tabIndex = -1;
   el.innerHTML = `
     <div class="title-bar">
       <img class="title-icon" src="${win.icon}" alt="">

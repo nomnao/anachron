@@ -159,6 +159,8 @@
   position: absolute;
   display: flex;
   flex-direction: column;
+  /* Holding the keyboard shows in the blue title bar, not an outline */
+  outline: none;
   padding: calc(var(--px) * 3);
   background: #c0c0c0;
   box-shadow:

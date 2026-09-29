@@ -178,6 +178,8 @@ function createIcons(desktop) {
   function onKeyDown(event) {
     if (!['Delete', 'Backspace', 'F2'].includes(event.key)) return;
     if (event.target.closest('input, textarea')) return;
+    // Keys pressed while a window has the keyboard belong to that window
+    if (event.target.closest('.window')) return;
     if (desktop.querySelector('.dialog-overlay')) return;
 
     const selected = desktop.querySelector('.desktop-icon.is-selected');
