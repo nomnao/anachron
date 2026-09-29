@@ -2,7 +2,7 @@
 
 The nineties never left. They moved into your browser.
 
-ANACHRON is a fictional 1990s operating system, complete with a beige CRT monitor: press the power button, watch it boot, and you get a desktop with windows, a Start menu and working apps. You can write notes, draw pictures, take photos with your webcam, record short videos and play Minesweeper and Solitaire, and everything you save stays on the computer's desktop.
+ANACHRON is a fictional 1990s operating system, complete with a beige CRT monitor: press the power button, watch it boot, and you get a desktop with windows, a Start menu and working apps. You can write notes, draw pictures, take photos with your webcam, record short videos and play Minesweeper, Solitaire and Snake, and everything you save stays on the computer's desktop.
 
 **Try it:** https://nomnao.github.io/anachron/
 
