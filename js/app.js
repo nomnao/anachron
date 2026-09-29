@@ -31,6 +31,8 @@ export const APPS = [
   // The board decides Minesweeper's size (see minesweeper.js)
   { id: 'minesweeper', title: 'Minesweeper', icon: 'assets/icons/minesweeper.svg', width: 174, height: 256,
     load: () => import('./apps/minesweeper.js'), resizable: false },
+  { id: 'solitaire', title: 'Solitaire', icon: 'assets/icons/solitaire.svg', width: 600, height: 440,
+    load: () => import('./apps/solitaire.js'), minWidth: 540, minHeight: 330 },
   { id: 'viewer',   title: 'Image Viewer',   icon: 'assets/icons/image-file.svg', width: 384, height: 280,
     load: () => import('./apps/viewer.js'), listed: false },
   { id: 'player',   title: 'Video Player',   icon: 'assets/icons/video-file.svg', width: 384, height: 300,

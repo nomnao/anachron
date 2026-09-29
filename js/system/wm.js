@@ -84,6 +84,14 @@ export function openWindow({
     resizable, minWidth: Math.min(minWidth, width), minHeight: Math.min(minHeight, height),
   };
 
+  // A wide or tall window (like Solitaire) moves left or up so it
+  // isn't cut off by the edge of the screen
+  const screen = measureDesktop();
+  if (screen) {
+    win.x = clamp(win.x, 0, Math.max(0, screen.width - width));
+    win.y = clamp(win.y, 0, Math.max(0, screen.height - TASKBAR_HEIGHT - height));
+  }
+
   win.el = createWindowElement(win, content);
   desktop.append(win.el);
   windows.set(id, win);
