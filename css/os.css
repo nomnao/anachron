@@ -1880,6 +1880,66 @@
   height: 100%;
 }
 
+/* ================= SNAKE ================= */
+
+.snake {
+  --snake-zoom: 1;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+/* The space below the menu bar, with the board in the middle */
+.snake-area {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* The game screen, sunk into the window */
+.snake-screen {
+  position: relative;
+  border: calc(var(--px) * 2) solid;
+  border-color: #808080 #ffffff #ffffff #808080;
+  touch-action: none;
+}
+
+/* 288 x 216 canvas pixels, one per virtual pixel (or more when
+   the window is maximized), kept chunky rather than blurred */
+.snake-board {
+  display: block;
+  width: calc(var(--px) * 288 * var(--snake-zoom));
+  height: calc(var(--px) * 216 * var(--snake-zoom));
+  image-rendering: pixelated;
+}
+
+/* "Press an arrow key to start", "Paused", "Game Over". It sits
+   low on the board, so the snake in the middle stays in sight. */
+.snake-message {
+  position: absolute;
+  left: 50%;
+  top: 75%;
+  margin: 0;
+  padding: calc(var(--px) * 6) calc(var(--px) * 10);
+  transform: translate(-50%, -50%);
+  background: #9bbc0f;
+  border: calc(var(--px) * 2) solid #0f380f;
+  color: #0f380f;
+  font-weight: bold;
+  text-align: center;
+  white-space: pre-line;
+  pointer-events: none;
+}
+
+.snake-message[hidden] {
+  display: none;
+}
+
 /* ================= DISPLAY PROPERTIES ================= */
 
 .display {

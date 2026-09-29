@@ -44,11 +44,14 @@ Coo lives in the bottom-right corner and knows its way around. Click Coo for a t
 | **My Files** | Lists every file with its type and size. Click a column title to sort by it, and again to reverse. Open, rename or delete files from here too. |
 | **Minesweeper** | The classic: uncover every square that isn't a mine. Beginner, Intermediate and Expert levels, a mine counter, a timer and your best times. |
 | **Solitaire** | Klondike, the card game that came with every Windows PC. Draw One or Draw Three, score and time, Undo, three card backs (one of them has Coo on it), and bouncing cards when you win. |
+| **Snake** | Steer a snake around a handheld-game screen, eating apples to grow longer. Three speeds (faster ones score more per apple) and a best score for each. |
 | **Recycle Bin** | Lists deleted files, with when they were deleted. Click a column title to sort by it. Restore them, delete them for good, or empty the bin. |
 
 **How to play Minesweeper:** click a square to uncover it. A number tells you how many of the eight squares around it hide a mine. Right-click a square to plant a flag where you think a mine is. Once a number has all its mines flagged, click it to uncover the squares around it. Your first click is always safe; click the smiley face (or press F2) to start again. Maximize the window for a bigger board, with more squares and the same share of mines as your level.
 
 **How to play Solitaire:** get all 52 cards up to the four piles at the top right, one pile per suit, from Ace to King. Click the deck (top left) to turn over cards. Drag cards onto the seven piles below, building down in alternating colors (a red 9 on a black 10); a pile's face-down card turns over when you uncover it, and only a King can go in an empty space. Double-click a card to send it up to its suit's pile, or right-click the green table to send up every card that can go. Choose Draw One or Draw Three in the Game menu, and a card back in the Deck menu.
+
+**How to play Snake:** press an arrow key (or W A S D) to start, then steer the snake to the apples; on a phone, swipe the board. Each apple makes the snake longer. Hitting a wall or your own tail ends the game. Press P or the space bar to pause (clicking another window pauses too), and F2 for a new game.
 
 Double-clicking a saved file opens the right program:
 
@@ -76,7 +79,7 @@ Photos and videos have the same chunky-pixel look as Paint, and a photo is exact
 | Ctrl+H | Replace in Notepad (on a Mac, Cmd+H hides the browser, so use Search > Replace...) |
 | Ctrl+E / Cmd+E | Change the picture's size in Paint (Image > Attributes) |
 | Shift (while dragging) | Straight lines at 45°, squares and circles in Paint |
-| F2 | Rename the selected file (desktop or My Files); new game in Minesweeper and Solitaire |
+| F2 | Rename the selected file (desktop or My Files); new game in Minesweeper, Solitaire and Snake |
 | Delete (or Backspace) | Send the selected file to the Recycle Bin, after asking (in the Recycle Bin: delete it for good) |
 | Enter | Open the selected file in My Files, or restore it in the Recycle Bin |
 | ↑ / ↓ | Move through the list in My Files and the Recycle Bin |

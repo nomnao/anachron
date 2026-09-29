@@ -33,6 +33,9 @@ export const APPS = [
     load: () => import('./apps/minesweeper.js'), resizable: false },
   { id: 'solitaire', title: 'Solitaire', icon: 'assets/icons/solitaire.svg', width: 600, height: 440,
     load: () => import('./apps/solitaire.js'), minWidth: 540, minHeight: 330 },
+  // The board decides Snake's size (it only grows when maximized)
+  { id: 'snake', title: 'Snake', icon: 'assets/icons/snake.svg', width: 300, height: 292,
+    load: () => import('./apps/snake.js'), resizable: false },
   { id: 'viewer',   title: 'Image Viewer',   icon: 'assets/icons/image-file.svg', width: 384, height: 280,
     load: () => import('./apps/viewer.js'), listed: false },
   { id: 'player',   title: 'Video Player',   icon: 'assets/icons/video-file.svg', width: 384, height: 300,
