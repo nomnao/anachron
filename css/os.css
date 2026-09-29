@@ -115,6 +115,44 @@
   outline: var(--px) dotted #ffffff;
 }
 
+/* ----- Dragging a file to the Recycle Bin ----- */
+
+/* Desktop file icons can be dragged with a finger too */
+.desktop-icon[data-file-name] {
+  touch-action: none;
+}
+
+/* The see-through copy that follows the pointer */
+.drag-ghost {
+  position: absolute;
+  z-index: 25000;
+  width: calc(var(--px) * 76);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* The file being dragged fades a little where it was */
+.desktop-icon.is-dragging,
+.files-row.is-dragging {
+  opacity: 0.5;
+}
+
+/* The Recycle Bin lights up while a file is over it */
+.desktop-icon.is-drop-over img {
+  filter: brightness(0.6) sepia(1) hue-rotate(180deg) saturate(4);
+}
+
+.desktop-icon.is-drop-over .icon-label {
+  background: #000080;
+  color: #ffffff;
+  outline: var(--px) dotted #ffffff;
+}
+
+.recycle-bin.is-drop-over .files-list {
+  outline: calc(var(--px) * 2) dashed #000080;
+  outline-offset: calc(var(--px) * -4);
+}
+
 /* ================= WINDOWS ================= */
 
 .window {

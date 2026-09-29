@@ -25,6 +25,7 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 - **The clock** in the bottom-right corner shows the time; point at it to see the date, or click it for a **calendar**. The arrows go to other months, and the date at the bottom comes back to today.
 - **Saved files** appear as icons on the desktop. Double-click one to open it.
 - **Right-click** a file for **Open**, **Rename** and **Delete**.
+- **Drag a file onto the Recycle Bin** (its icon, or its open window) to delete it. Files in My Files can be dragged there too.
 - **Right-click the empty desktop** and choose **Arrange Icons** to sort your files **by Name**, **by Type**, **by Size** or **by Date** (newest first). The app icons are sorted along with your files (apps count as type *Application*, with no size or date). The icons stay sorted that way as you save, rename and delete files.
 - **The Recycle Bin** keeps deleted files until you're sure. Its icon fills up when something is in it. Open it to **Restore** a file to the desktop or **Delete** it for good, or right-click it and choose **Empty Recycle Bin**.
 

@@ -17,6 +17,7 @@ import { setUpStartMenu } from './start-menu.js';
 import { setUpCalendar, formatLongDate } from './calendar.js';
 import { setUpAssistant, tellAssistant, toggleAssistant, isAssistantHidden } from './assistant.js';
 import { exportFile, importFiles, chooseFilesToImport } from './transfer.js';
+import { setUpFileDrag } from './file-drag.js';
 import {
   currentDisplaySettings, saveDisplaySettings, onDisplaySettingsChanged, paintBackground, labelTextColor,
 } from './background.js';
@@ -145,8 +146,6 @@ function createIcons(desktop) {
     }
   }));
 
-  // Pressing anywhere that isn't an icon (the empty desktop,
-  // a window, the taskbar) clears the selection
   // Right-clicking the empty desktop: a menu to arrange the icons
   desktop.addEventListener('contextmenu', (event) => {
     if (event.target !== desktop && event.target !== iconArea) return;
@@ -165,6 +164,8 @@ function createIcons(desktop) {
     ]);
   });
 
+  // Pressing anywhere that isn't an icon (the empty desktop,
+  // a window, the taskbar) clears the selection
   desktop.addEventListener('pointerdown', (event) => {
     if (!event.target.closest('.desktop-icon')) {
       selectIcon(null);
@@ -209,6 +210,9 @@ function renderFileIcons() {
     const open = () => openFile(file.name);
     const icon = createIcon(fileTypeOf(file).icon, file.name, open);
     icon.dataset.fileName = file.name;
+
+    // Drag it onto the Recycle Bin to delete it
+    setUpFileDrag(icon, { name: file.name, icon: fileTypeOf(file).icon });
 
     // Right-click: a small menu to open, rename or delete the file
     icon.addEventListener('contextmenu', (event) => {
@@ -347,6 +351,8 @@ function createRecycleBinIcon(desktop) {
   const app = APPS.find((a) => a.id === 'recycle');
   const icon = createIcon(app.icon, app.title, () => launchApp(app));
   icon.dataset.appId = app.id;
+  // Files dragged onto it go in the bin (see file-drag.js)
+  icon.dataset.dropTarget = 'recycle';
   const image = icon.querySelector('img');
 
   function update(items) {

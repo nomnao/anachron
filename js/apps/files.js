@@ -14,6 +14,7 @@ import { listFiles, onFilesChanged, fileSize } from '../system/fs.js';
 import { fileEntry, sortByEntry, setUpColumnSorting } from '../shell/sort-files.js';
 import { confirmRecycle } from '../shell/recycle.js';
 import { exportFile, chooseFilesToImport } from '../shell/transfer.js';
+import { setUpFileDrag } from '../shell/file-drag.js';
 
 // Where the column the list is sorted by is kept for next time
 const SORT_STORAGE_KEY = 'anachron.files-sort';
@@ -120,6 +121,8 @@ function render(explorer) {
     row.querySelector('.files-name span').textContent = file.name;
     row.querySelector('.files-type').textContent = type.label;
     row.querySelector('.files-size').textContent = formatSize(fileSize(file));
+    // Drag it onto the Recycle Bin to delete it
+    setUpFileDrag(row, { name: file.name, icon: type.icon });
     return row;
   }));
 

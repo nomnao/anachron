@@ -1,4 +1,5 @@
 // Recycle Bin: files that were deleted from the desktop or My Files.
+// Files dragged onto the bin's icon, or into this window, land here.
 // Restore puts a file back on the desktop; Delete (or Empty Recycle
 // Bin) gets rid of it for good. Click a column title to sort by
 // that column, and again to reverse the order. The list updates by
@@ -21,6 +22,8 @@ const SORT_STORAGE_KEY = 'anachron.recycle-sort';
 export function createApp() {
   const root = document.createElement('div');
   root.className = 'files recycle-bin';
+  // Files dragged into the open bin go in it (see file-drag.js)
+  root.dataset.dropTarget = 'recycle';
   // Lets the window receive key presses (Enter, Delete, arrows)
   root.tabIndex = -1;
 
