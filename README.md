@@ -51,7 +51,7 @@ Coo lives in the bottom-right corner and knows its way around. Click Coo for a t
 
 **How to play Solitaire:** get all 52 cards up to the four piles at the top right, one pile per suit, from Ace to King. Click the deck (top left) to turn over cards. Drag cards onto the seven piles below, building down in alternating colors (a red 9 on a black 10); a pile's face-down card turns over when you uncover it, and only a King can go in an empty space. Double-click a card to send it up to its suit's pile, or right-click the green table to send up every card that can go. Choose Draw One or Draw Three in the Game menu, and a card back in the Deck menu.
 
-**How to play Snake:** press an arrow key (or W A S D) to start, then steer the snake to the apples; on a phone, swipe the board. Each apple makes the snake longer. Hitting a wall or your own tail ends the game. Press P or the space bar to pause (clicking another window pauses too), and F2 for a new game.
+**How to play Snake:** press an arrow key (or W A S D) to start, then steer the snake to the apples; on a phone, swipe the board. Each apple makes the snake longer. Hitting a wall or your own tail ends the game. Press P or the space bar to pause (clicking another window pauses too), and F2 for a new game. Drag the window's edges (or maximize it) for a bigger board.
 
 Double-clicking a saved file opens the right program:
 

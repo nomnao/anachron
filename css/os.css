@@ -1909,8 +1909,8 @@
   touch-action: none;
 }
 
-/* 288 x 216 canvas pixels, one per virtual pixel (or more when
-   the window is maximized), kept chunky rather than blurred */
+/* 288 x 216 virtual pixels, bigger in a bigger window, kept
+   chunky rather than blurred */
 .snake-board {
   display: block;
   width: calc(var(--px) * 288 * var(--snake-zoom));

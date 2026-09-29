@@ -7,7 +7,8 @@
 //
 // The board is a tiny canvas, one canvas pixel per virtual pixel,
 // drawn with chunky pixels in the greens of a handheld game screen.
-// A maximized window shows the same board, only bigger.
+// Making the window bigger (drag its edges, or maximize it) shows
+// the same board, only bigger, so scores stay fair.
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
@@ -21,9 +22,9 @@ const CELL = 12;
 
 // How many milliseconds each step takes, and points per apple
 const SPEEDS = {
-  slow:   { label: 'Slow',   step: 160, points: 5 },
-  medium: { label: 'Medium', step: 110, points: 10 },
-  fast:   { label: 'Fast',   step: 70,  points: 20 },
+  slow:   { label: 'Slow',   step: 250, points: 5 },
+  medium: { label: 'Medium', step: 180, points: 10 },
+  fast:   { label: 'Fast',   step: 120, points: 20 },
 };
 
 // Handheld-screen greens, lightest to darkest
@@ -341,6 +342,9 @@ function stopTimer(game) {
 
 function render(game) {
   const { ctx } = game;
+  // The canvas may have more pixels than the board (see fitBoard);
+  // drawing is still done in board pixels
+  ctx.setTransform(game.detail ?? 1, 0, 0, game.detail ?? 1, 0, 0);
 
   ctx.fillStyle = COLORS.screen;
   ctx.fillRect(0, 0, COLS * CELL, ROWS * CELL);
@@ -449,8 +453,9 @@ function showMessage(game, text) {
   game.message.hidden = !text;
 }
 
-// Makes the board as big as fits in the window, in steps of half its
-// size so the chunky pixels stay even
+// Makes the board as big as fits in the window. So the chunky pixels
+// stay even at any size, the canvas gets a whole number of its own
+// pixels for each board pixel, at least as many as the screen shows.
 function fitBoard(game, area) {
   const screen = game.root.querySelector('.snake-screen');
   const border = screen.offsetWidth - game.canvas.offsetWidth;
@@ -463,8 +468,17 @@ function fitBoard(game, area) {
 
   const roomX = (area.clientWidth - border) / scale / (COLS * CELL);
   const roomY = (area.clientHeight - border) / scale / (ROWS * CELL);
-  const zoom = Math.max(1, Math.floor(Math.min(roomX, roomY) * 2) / 2);
+  const zoom = Math.max(1, Math.min(roomX, roomY));
   game.root.style.setProperty('--snake-zoom', zoom);
+
+  const detail = Math.ceil(zoom * scale * (window.devicePixelRatio || 1));
+  if (detail !== game.detail) {
+    game.detail = detail;
+    // Changing the canvas size wipes it, so draw it again
+    game.canvas.width = COLS * CELL * detail;
+    game.canvas.height = ROWS * CELL * detail;
+    render(game);
+  }
 }
 
 async function showBestScores(game) {
