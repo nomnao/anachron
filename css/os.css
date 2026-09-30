@@ -79,6 +79,21 @@
   display: contents;
 }
 
+/* Pictures on the desktop can't be dragged away by the browser, so
+   ANACHRON's own dragging of icons works (see setUpDropping) */
+#desktop img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+/* An icon dragged to a spot of its own (see layoutIcons in
+   desktop.js): the same size as a place in the grid */
+.desktop-icon.is-placed {
+  position: absolute;
+  width: calc(var(--px) * 76);
+  height: calc(var(--px) * 70);
+}
+
 .desktop-icon {
   display: flex;
   flex-direction: column;

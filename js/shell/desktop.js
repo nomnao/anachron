@@ -35,6 +35,17 @@ const cleanups = [];
 const SORT_STORAGE_KEY = 'anachron.desktop-sort';
 let sortBy = loadSortBy();
 
+// Icons dragged to a spot of their own stay there: icon -> { x, y },
+// in virtual pixels from the top left of the icon area. Empty means
+// the icons line up in the grid (see layoutIcons).
+const POSITIONS_STORAGE_KEY = 'anachron.icon-positions';
+let iconPositions = loadPositions();
+
+// The size of one place in the icon grid, in virtual pixels (as in
+// #desktop-icons in os.css)
+const ICON_WIDTH = 76;
+const ICON_HEIGHT = 70;
+
 // Every open app window: window id -> { id }. The id changes when the
 // window's file is renamed, and apps always use the current one.
 const openWindows = new Map();
@@ -147,13 +158,15 @@ function createIcons(desktop) {
   for (const app of LISTED_APPS) {
     const icon = createIcon(app.icon, app.title, () => launchApp(app));
     icon.dataset.appId = app.id;
+    // Apps can be moved around the desktop, but not deleted
+    setUpFileDrag(icon, { name: app.title, icon: app.icon, canRecycle: false, onPlace: (spot) => placeIcon(icon, spot) });
     iconArea.append(icon);
   }
 
   iconArea.append(createRecycleBinIcon(desktop));
 
   // Saved files come after the apps (unless the icons are arranged,
-  // see applyIconOrder). They live in their own box
+  // see layoutIcons). They live in their own box
   // (display: contents, so they still line up in the same grid)
   // so we can redraw just them whenever a file is saved.
   const fileIcons = document.createElement('div');
@@ -164,8 +177,14 @@ function createIcons(desktop) {
   cleanups.push(onFilesChanged(renderFileIcons));
 
   // A renamed file's windows get new ids too, so double-clicking
-  // the renamed file brings back the window it is already open in
+  // the renamed file brings back the window it is already open in.
+  // Its icon keeps its spot on the desktop.
   cleanups.push(onFileRenamed((oldName, newName) => {
+    if (iconPositions[`file:${oldName}`]) {
+      iconPositions[`file:${newName}`] = iconPositions[`file:${oldName}`];
+      delete iconPositions[`file:${oldName}`];
+      savePositions();
+    }
     for (const app of APPS) {
       const oldId = `${app.id}:${oldName}`;
       const newId = `${app.id}:${newName}`;
@@ -246,8 +265,9 @@ function renderFileIcons() {
     const icon = createIcon(fileTypeOf(file).icon, file.name, open);
     icon.dataset.fileName = file.name;
 
-    // Drag it onto the Recycle Bin to delete it
-    setUpFileDrag(icon, { name: file.name, icon: fileTypeOf(file).icon });
+    // Drag it onto the Recycle Bin to delete it, or anywhere on the
+    // desktop to move it there
+    setUpFileDrag(icon, { name: file.name, icon: fileTypeOf(file).icon, onPlace: (spot) => placeIcon(icon, spot) });
 
     // Right-click: a small menu to open, rename or delete the file
     icon.addEventListener('contextmenu', (event) => {
@@ -267,7 +287,7 @@ function renderFileIcons() {
   });
 
   document.querySelector('#file-icons').replaceChildren(...icons);
-  applyIconOrder();
+  layoutIcons();
 }
 
 // ---------- Files from the real computer ----------
@@ -277,6 +297,15 @@ function renderFileIcons() {
 // over it, the screen gets a dotted edge.
 function setUpDropping(desktop) {
   const hasFiles = (event) => event.dataTransfer?.types.includes('Files');
+
+  // Browsers let any picture on a page be dragged away (to save it,
+  // say). On the desktop that would take over the mouse whenever an
+  // icon is pressed by its picture, and icons couldn't be moved or
+  // dropped on the Recycle Bin. ANACHRON does its own dragging, so
+  // the browser's is switched off for pictures.
+  desktop.addEventListener('dragstart', (event) => {
+    if (event.target instanceof HTMLImageElement) event.preventDefault();
+  });
 
   desktop.addEventListener('dragover', (event) => {
     if (!hasFiles(event)) return;
@@ -326,13 +355,58 @@ function setAsWallpaper(name) {
 
 // ---------- Arranging icons ----------
 
-// Puts every icon, apps and files alike, in the chosen order.
-// Icons are placed with the CSS order property, so nothing has to
-// be rebuilt; with no order chosen, apps come first, then files
-// in the order they were first saved.
-function applyIconOrder() {
+// Puts every icon in its place. Icons that have been dragged somewhere
+// stay there, and any icon without a spot yet (a file just saved)
+// gets the first free place in the grid, so nothing lands on top of
+// another icon. Until an icon is dragged, they all line up in the
+// grid instead: in the order chosen with Arrange Icons, or apps
+// first, then files in the order they were first saved.
+function layoutIcons() {
+  const icons = [...document.querySelectorAll('#desktop-icons .desktop-icon')];
+
+  // Icons of files that are gone (deleted, or in the Recycle Bin)
+  // give up their spot
+  const keys = new Set(icons.map(iconKey));
+  let pruned = false;
+  for (const key of Object.keys(iconPositions)) {
+    if (!keys.has(key)) {
+      delete iconPositions[key];
+      pruned = true;
+    }
+  }
+
+  if (Object.keys(iconPositions).length === 0) {
+    if (pruned) savePositions();
+    for (const icon of icons) {
+      icon.classList.remove('is-placed');
+      icon.style.left = '';
+      icon.style.top = '';
+    }
+    applyIconOrder(icons);
+    return;
+  }
+
+  let added = false;
+  for (const icon of icons) {
+    const key = iconKey(icon);
+    if (!iconPositions[key]) {
+      iconPositions[key] = freeSpot();
+      added = true;
+    }
+    const { x, y } = iconPositions[key];
+    icon.classList.add('is-placed');
+    icon.style.order = '';
+    icon.style.left = `calc(var(--px) * ${x})`;
+    icon.style.top = `calc(var(--px) * ${y})`;
+  }
+  if (added || pruned) savePositions();
+}
+
+// Grid order: puts every icon, apps and files alike, in the order
+// chosen with Arrange Icons, using the CSS order property
+function applyIconOrder(icons) {
   const files = new Map(listFiles().map((file) => [file.name, file]));
-  const items = [...document.querySelectorAll('#desktop-icons .desktop-icon')].map((el) => ({
+  const items = icons.map((el) => ({
     el,
     entry: el.dataset.fileName
       ? fileEntry(files.get(el.dataset.fileName))
@@ -344,16 +418,109 @@ function applyIconOrder() {
   });
 }
 
-// Sorts the icons, and keeps them sorted that way from now on,
-// even as files are saved, renamed or deleted
+// An icon let go on the empty desktop (spot is where the dragged copy
+// was, on screen). The first time, every icon keeps the place it has
+// in the grid, so only the one moved changes.
+function placeIcon(icon, spot) {
+  const area = document.querySelector('#desktop-icons');
+  const origin = area.getBoundingClientRect();
+  const { scale, width, height } = measureIconArea();
+  const toVirtual = (rect) => ({
+    x: Math.round((rect.left - origin.left) / scale),
+    y: Math.round((rect.top - origin.top) / scale),
+  });
+
+  if (Object.keys(iconPositions).length === 0) {
+    for (const other of area.querySelectorAll('.desktop-icon')) {
+      iconPositions[iconKey(other)] = toVirtual(other.getBoundingClientRect());
+    }
+  }
+
+  // Kept on the desktop, and off the taskbar
+  const { x, y } = toVirtual(spot);
+  iconPositions[iconKey(icon)] = {
+    x: Math.min(Math.max(x, 0), Math.max(0, width - ICON_WIDTH)),
+    y: Math.min(Math.max(y, 0), Math.max(0, height - ICON_HEIGHT)),
+  };
+  savePositions();
+  layoutIcons();
+  selectIcon(icon);
+}
+
+// The first place in the grid (down each column, then the next
+// column) that no icon is on
+function freeSpot() {
+  const { width, height } = measureIconArea();
+  const taken = Object.values(iconPositions);
+  const rows = Math.max(1, Math.floor(height / ICON_HEIGHT));
+  const columns = Math.max(1, Math.floor(width / ICON_WIDTH));
+
+  for (let column = 0; column < columns; column++) {
+    for (let row = 0; row < rows; row++) {
+      const x = column * ICON_WIDTH;
+      const y = row * ICON_HEIGHT;
+      const clear = taken.every((p) => Math.abs(p.x - x) >= ICON_WIDTH || Math.abs(p.y - y) >= ICON_HEIGHT);
+      if (clear) return { x, y };
+    }
+  }
+  // A completely full desktop: the top left corner, on top
+  return { x: 0, y: 0 };
+}
+
+// The icon area's size in virtual pixels, and how many screen pixels
+// one virtual pixel is. It runs from the icons' left edge to the
+// desktop's right edge, and down to just above the taskbar.
+function measureIconArea() {
+  const area = document.querySelector('#desktop-icons');
+  const desktop = document.querySelector('#desktop');
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position: absolute; visibility: hidden; width: calc(var(--px) * 100);';
+  desktop.append(probe);
+  const scale = probe.getBoundingClientRect().width / 100 || 1;
+  probe.remove();
+
+  const areaRect = area.getBoundingClientRect();
+  const desktopRect = desktop.getBoundingClientRect();
+  return {
+    scale,
+    width: (desktopRect.right - areaRect.left) / scale,
+    height: areaRect.height / scale,
+  };
+}
+
+function iconKey(icon) {
+  return icon.dataset.fileName ? `file:${icon.dataset.fileName}` : `app:${icon.dataset.appId}`;
+}
+
+// Arrange Icons: lines every icon up in the grid, sorted, and keeps
+// them sorted that way as files are saved, renamed or deleted, until
+// an icon is dragged somewhere again
 function arrangeIcons(order) {
   sortBy = order;
+  iconPositions = {};
+  savePositions();
   try {
     localStorage.setItem(SORT_STORAGE_KEY, order);
   } catch {
     // Not kept, but the icons are still sorted until the page closes
   }
-  applyIconOrder();
+  layoutIcons();
+}
+
+function loadPositions() {
+  try {
+    return JSON.parse(localStorage.getItem(POSITIONS_STORAGE_KEY)) ?? {};
+  } catch {
+    return {};
+  }
+}
+
+function savePositions() {
+  try {
+    localStorage.setItem(POSITIONS_STORAGE_KEY, JSON.stringify(iconPositions));
+  } catch {
+    // Not kept, but the icons stay put until the page closes
+  }
 }
 
 function loadSortBy() {
@@ -388,6 +555,8 @@ function createRecycleBinIcon(desktop) {
   icon.dataset.appId = app.id;
   // Files dragged onto it go in the bin (see file-drag.js)
   icon.dataset.dropTarget = 'recycle';
+  // The bin itself can be moved around the desktop
+  setUpFileDrag(icon, { name: app.title, icon: app.icon, canRecycle: false, onPlace: (spot) => placeIcon(icon, spot) });
   const image = icon.querySelector('img');
 
   function update(items) {
