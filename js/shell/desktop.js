@@ -10,6 +10,7 @@ import {
 } from '../system/fs.js';
 import { showConfirmDialog } from './dialogs.js';
 import { trackEvent } from '../system/analytics.js';
+import { isMuted, setMuted, playDing } from '../system/sound.js';
 import { showContextMenu } from './context-menu.js';
 import { isDoubleClick } from './double-click.js';
 import { renameInPlace } from './rename.js';
@@ -50,7 +51,10 @@ export function showDesktop(screen, { onShutDown }) {
           Start
         </button>
         <div id="taskbar-buttons"></div>
-        <button id="clock" aria-label="Calendar"></button>
+        <div id="tray">
+          <button id="volume"></button>
+          <button id="clock" aria-label="Calendar"></button>
+        </div>
       </div>
     </div>
   `;
@@ -78,10 +82,39 @@ export function showDesktop(screen, { onShutDown }) {
   // Clicking the clock shows a calendar
   cleanups.push(setUpCalendar(desktop));
 
+  // The speaker next to the clock turns the sound off and on
+  setUpVolume(desktop);
+
   updateClock();
   const clockTimer = setInterval(updateClock, 1000);
   cleanups.push(() => clearInterval(clockTimer));
 }
+
+// The speaker in the tray. A red line through it means the sound
+// is off.
+function setUpVolume(desktop) {
+  const button = desktop.querySelector('#volume');
+
+  function draw() {
+    const off = isMuted();
+    button.innerHTML = off ? SPEAKER_OFF : SPEAKER_ON;
+    button.title = off ? 'Sound is off. Click to turn it on.' : 'Sound is on. Click to turn it off.';
+    button.setAttribute('aria-label', off ? 'Turn sound on' : 'Turn sound off');
+  }
+
+  button.addEventListener('click', () => {
+    setMuted(!isMuted());
+    draw();
+    playDing();
+  });
+  draw();
+}
+
+const SPEAKER = '<path d="M1 5h3l4-4v14l-4-4H1z" fill="#c0c0c0" stroke="#000"/>';
+const SPEAKER_ON = `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">${SPEAKER}`
+  + '<path d="M10 5.5q1.5 2.5 0 5M12 3.5q3 4.5 0 9" fill="none" stroke="#000"/></svg>';
+const SPEAKER_OFF = `<svg viewBox="0 0 16 16" shape-rendering="crispEdges">${SPEAKER}`
+  + '<path d="M10 4l5 8M15 4l-5 8" stroke="#ff0000" stroke-width="1.5"/></svg>';
 
 // Stops everything the desktop started. The screen itself is
 // cleared by whoever shows the next thing on it.

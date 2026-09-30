@@ -1,6 +1,7 @@
 import { runBoot, runShutdown } from './system/boot.js';
 import { showDesktop, hideDesktop } from './shell/desktop.js';
 import { trackEvent } from './system/analytics.js';
+import { unlockSound, playPowerOnBeep, playStartup, playShutdown } from './system/sound.js';
 
 const monitor = document.querySelector('#monitor');
 const crtScreen = document.querySelector('#crt-screen');
@@ -36,16 +37,23 @@ async function powerOn() {
   trackEvent('power-on');
   monitor.classList.add('is-on');
 
+  // Pressing the power button is the click that lets the page make
+  // sound. A beep says the computer is alive, like a real PC.
+  unlockSound();
+  setTimeout(playPowerOnBeep, 300);
+
   await runBoot(crtScreen);
 
   showDesktop(crtScreen, { onShutDown: shutDown });
   setState('desktop');
+  playStartup();
 }
 
 // Shut Down from the Start menu
 async function shutDown() {
   setState('shutting-down');
   trackEvent('shut-down');
+  playShutdown();
   hideDesktop();
 
   await runShutdown(crtScreen);

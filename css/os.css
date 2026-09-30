@@ -661,16 +661,38 @@
     inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #808080;
 }
 
-#clock {
+/* The sunken box in the corner, with the speaker and the clock */
+#tray {
   height: calc(var(--px) * 22);
   display: flex;
   align-items: center;
-  padding: 0 calc(var(--px) * 10);
-  border: none;
-  background: none;
+  padding-left: calc(var(--px) * 4);
   box-shadow:
     inset var(--px) var(--px) 0 #808080,
     inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+#volume {
+  display: flex;
+  width: calc(var(--px) * 18);
+  height: calc(var(--px) * 18);
+  padding: var(--px);
+  border: none;
+  background: none;
+}
+
+#volume svg {
+  width: 100%;
+  height: 100%;
+}
+
+#clock {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 calc(var(--px) * 8) 0 calc(var(--px) * 4);
+  border: none;
+  background: none;
 }
 
 /* While the calendar is open the clock looks pushed in further */
