@@ -2268,3 +2268,363 @@
   color: #000080;
   text-decoration: underline;
 }
+
+/* ================= WEB BROWSER ================= */
+
+.browser {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+
+/* Big raised buttons with a picture over a word, and the spinning
+   logo on the right that shows a page is on its way */
+.browser-toolbar {
+  display: flex;
+  align-items: stretch;
+  gap: calc(var(--px) * 2);
+  padding: calc(var(--px) * 2) 0;
+  border-top: var(--px) solid #808080;
+  box-shadow: inset 0 var(--px) 0 #ffffff;
+}
+
+.browser-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--px) * 1);
+  min-width: calc(var(--px) * 40);
+  padding: calc(var(--px) * 3) calc(var(--px) * 4) calc(var(--px) * 2);
+  border: none;
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #ffffff,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080;
+}
+
+.browser-button:active:not(:disabled) {
+  box-shadow:
+    inset var(--px) var(--px) 0 #000000,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+.browser-button svg {
+  width: calc(var(--px) * 16);
+  height: calc(var(--px) * 16);
+}
+
+/* Greyed out, with the classic etched look */
+.browser-button:disabled {
+  color: #808080;
+  text-shadow: var(--px) var(--px) 0 #ffffff;
+}
+
+.browser-button:disabled svg {
+  opacity: 0.35;
+}
+
+.browser-logo {
+  margin-left: auto;
+  width: calc(var(--px) * 34);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000080;
+  box-shadow:
+    inset var(--px) var(--px) 0 #808080,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+/* A little globe; it spins while a page loads */
+.browser-logo span {
+  width: calc(var(--px) * 20);
+  height: calc(var(--px) * 20);
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg, transparent 45%, #9cc4ff 45%, #9cc4ff 55%, transparent 55%),
+    radial-gradient(circle at 35% 35%, #7fb2ff, #3a78d8 60%, #1a3f8a);
+  box-shadow: 0 0 0 var(--px) #ffffff;
+}
+
+.browser.is-loading .browser-logo span {
+  animation: browser-spin 0.8s linear infinite;
+}
+
+@keyframes browser-spin {
+  to { transform: rotate(360deg); }
+}
+
+.browser-address-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+  margin: 0 0 calc(var(--px) * 3);
+  padding-left: calc(var(--px) * 3);
+}
+
+.browser-address {
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--px) * 20);
+  padding: 0 calc(var(--px) * 4);
+  border: none;
+  outline: none;
+  font: inherit;
+  color: #000000;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.browser-go {
+  min-width: calc(var(--px) * 36);
+}
+
+/* The page itself: white, scrolling, and selectable like real text */
+.browser-page {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.browser-status {
+  grid-template-columns: 1fr auto;
+}
+
+.browser-status [data-status="text"] {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.browser-zone {
+  padding-right: calc(var(--px) * 10);
+}
+
+/* ================= THE WEB OF THE NINETIES ================= */
+
+/* Pages look the way browsers showed them then: Times, blue
+   underlined links, purple once visited */
+.web-page {
+  padding: calc(var(--px) * 8) calc(var(--px) * 12);
+  font-family: 'Times New Roman', Times, serif;
+  font-size: calc(var(--px) * 13);
+  line-height: 1.3;
+  color: #000000;
+}
+
+.web-page h1 {
+  margin: 0 0 calc(var(--px) * 8);
+  font-size: calc(var(--px) * 24);
+}
+
+.web-page h2 {
+  margin: calc(var(--px) * 12) 0 calc(var(--px) * 4);
+  font-size: calc(var(--px) * 17);
+}
+
+.web-page p,
+.web-page ol,
+.web-page ul {
+  margin: 0 0 calc(var(--px) * 8);
+}
+
+.web-page a {
+  color: #0000ee;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.web-page a.is-visited {
+  color: #551a8b;
+}
+
+.web-page hr {
+  margin: calc(var(--px) * 10) 0;
+  border: none;
+  border-top: var(--px) solid #808080;
+  border-bottom: var(--px) solid #ffffff;
+}
+
+.web-center { text-align: center; }
+.web-small { font-size: calc(var(--px) * 11); color: #404040; }
+.web-big { font-size: calc(var(--px) * 16); }
+.web-url { color: #008000; }
+
+.web-table {
+  border-collapse: collapse;
+  margin: 0 auto calc(var(--px) * 10);
+}
+
+.web-table th,
+.web-table td {
+  padding: calc(var(--px) * 3) calc(var(--px) * 6);
+  border: var(--px) solid #808080;
+  text-align: left;
+  vertical-align: top;
+}
+
+.web-table th {
+  background: #000080;
+  color: #ffffff;
+}
+
+.web-input {
+  font: inherit;
+  font-size: calc(var(--px) * 12);
+  padding: calc(var(--px) * 2) calc(var(--px) * 4);
+  border: var(--px) solid #808080;
+  box-shadow: inset var(--px) var(--px) 0 #000000;
+  background: #ffffff;
+  color: #000000;
+}
+
+textarea.web-input {
+  width: calc(var(--px) * 200);
+  resize: vertical;
+}
+
+.web-page .push-button {
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: calc(var(--px) * 11);
+}
+
+/* Blinking text, the most nineties thing there is */
+.web-blink {
+  color: #ff0000;
+  font-weight: bold;
+  animation: web-blink 1s steps(1) infinite;
+}
+
+@keyframes web-blink {
+  50% { visibility: hidden; }
+}
+
+.web-rainbow {
+  text-align: center;
+  background: linear-gradient(90deg, #ff0000, #ff8000, #e0c000, #00a000, #0000ff, #8000ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.web-construction {
+  margin: calc(var(--px) * 10) auto;
+  width: 80%;
+  padding: calc(var(--px) * 6) 0;
+  text-align: center;
+  background: repeating-linear-gradient(-45deg, #ffd000 0 calc(var(--px) * 10), #000000 0 calc(var(--px) * 20));
+}
+
+.web-construction span {
+  padding: calc(var(--px) * 2) calc(var(--px) * 8);
+  background: #ffd000;
+  font-family: Tahoma, Verdana, sans-serif;
+  font-weight: bold;
+}
+
+.web-counter span {
+  padding: calc(var(--px) * 1) calc(var(--px) * 4);
+  background: #000000;
+  color: #00ff00;
+  font-family: 'Courier New', Courier, monospace;
+  letter-spacing: calc(var(--px) * 2);
+}
+
+/* ANACHRON Home: a starry night sky, very nineties */
+.web-home {
+  min-height: 100%;
+  background:
+    radial-gradient(circle, #ffffff 0 calc(var(--px) * 0.8), transparent calc(var(--px) * 1)) 0 0 / calc(var(--px) * 37) calc(var(--px) * 29),
+    radial-gradient(circle, #ffffaa 0 calc(var(--px) * 0.6), transparent calc(var(--px) * 1)) calc(var(--px) * 13) calc(var(--px) * 17) / calc(var(--px) * 53) calc(var(--px) * 41),
+    #000033;
+  color: #ffffff;
+}
+
+.web-home a { color: #66ccff; }
+.web-home a.is-visited { color: #cc99ff; }
+.web-home .web-table th { background: #3333aa; }
+.web-home .web-small { color: #aaaacc; }
+
+.web-banner {
+  text-align: center;
+  color: #ffff66;
+  font-style: italic;
+}
+
+.web-tip {
+  padding: calc(var(--px) * 4) calc(var(--px) * 8);
+  border: var(--px) dashed #ffff66;
+}
+
+/* Seekr: a big logo and a search box in the middle */
+.web-seekr-logo {
+  text-align: center;
+  font-size: calc(var(--px) * 40) !important;
+  color: #cc0000;
+  font-style: italic;
+  letter-spacing: calc(var(--px) * -1);
+}
+
+.web-seekr-logo span { color: #0000cc; }
+.web-seekr-small { font-size: calc(var(--px) * 24) !important; text-align: left; }
+
+.web-search {
+  display: flex;
+  justify-content: center;
+  gap: calc(var(--px) * 6);
+  margin-bottom: calc(var(--px) * 10);
+}
+
+.web-search .web-input { width: 55%; }
+
+.web-results li { margin-bottom: calc(var(--px) * 6); }
+
+/* Coo's Fan Club: a tiled pale background */
+.web-fanclub {
+  min-height: 100%;
+  background:
+    repeating-linear-gradient(45deg, #fff5d6 0 calc(var(--px) * 8), #ffeeb8 0 calc(var(--px) * 16));
+}
+
+.web-entry {
+  margin-bottom: calc(var(--px) * 8);
+  padding: calc(var(--px) * 4) calc(var(--px) * 8);
+  background: #ffffff;
+  border: var(--px) solid #c0a060;
+}
+
+.web-entry p { margin: 0 0 calc(var(--px) * 2); white-space: pre-wrap; }
+
+.web-form-note { font-size: calc(var(--px) * 11); color: #800000; }
+
+/* Dial-Up Daily: a newspaper */
+.web-news { background: #fffdf5; min-height: 100%; }
+
+.web-news-title {
+  text-align: center;
+  font-size: calc(var(--px) * 30) !important;
+  border-bottom: calc(var(--px) * 3) double #000000;
+}
+
+.web-news-date {
+  text-align: center;
+  font-style: italic;
+}
+
+/* Pixel Weather */
+.web-weather { background: #e6f2ff; min-height: 100%; }
+.web-forecast td { text-align: center; }
+.web-symbol { font-size: calc(var(--px) * 22); }
+
+/* The error page, plain as it was */
+.web-error {
+  font-family: Verdana, Tahoma, sans-serif;
+  font-size: calc(var(--px) * 12);
+}
+
+.web-error h1 { font-size: calc(var(--px) * 18); }

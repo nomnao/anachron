@@ -37,6 +37,8 @@ export const APPS = [
   // smaller than the board
   { id: 'snake', title: 'Snake', icon: 'assets/icons/snake.svg', width: 300, height: 292,
     load: () => import('./apps/snake.js'), minWidth: 300, minHeight: 292 },
+  { id: 'browser',  title: 'Web Browser',    icon: 'assets/icons/browser.svg',  width: 480, height: 380,
+    load: () => import('./apps/browser.js'), minWidth: 360, minHeight: 260 },
   { id: 'viewer',   title: 'Image Viewer',   icon: 'assets/icons/image-file.svg', width: 384, height: 280,
     load: () => import('./apps/viewer.js'), listed: false },
   { id: 'player',   title: 'Video Player',   icon: 'assets/icons/video-file.svg', width: 384, height: 300,
