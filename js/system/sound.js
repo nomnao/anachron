@@ -1,5 +1,6 @@
 // The computer's sounds: a beep when the power comes on, a chime
-// when the desktop appears, and a goodbye when it shuts down.
+// when the desktop appears, a goodbye when it shuts down, and the
+// modem's squeals when Web Browser dials up to get online.
 //
 // There are no sound files. Every sound is made on the spot with
 // the Web Audio API: simple waves, shaped to sound like bells and
@@ -209,4 +210,86 @@ export function playShutdown() {
 export function playDing() {
   if (!ready()) return;
   bell('A5', 0, { length: 0.8, loudness: 0.18 });
+}
+
+// ---------- The modem ----------
+
+// A plain tone into output, from start for length seconds
+function tone(output, hz, start, length, { loudness = 0.05, type = 'sine' } = {}) {
+  const at = context.currentTime + start;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.type = type;
+  oscillator.frequency.value = hz;
+  gain.gain.setValueAtTime(loudness, at);
+  gain.gain.setValueAtTime(0, at + length);
+  oscillator.connect(gain);
+  gain.connect(output);
+  oscillator.start(at);
+  oscillator.stop(at + length + 0.05);
+  return oscillator;
+}
+
+// Hiss, as the modems squeal their data at each other
+function hiss(output, start, length, { loudness = 0.05, center = 1800 } = {}) {
+  const at = context.currentTime + start;
+  const samples = Math.floor(context.sampleRate * length);
+  const buffer = context.createBuffer(1, samples, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < samples; i++) data[i] = Math.random() * 2 - 1;
+
+  const source = context.createBufferSource();
+  const band = context.createBiquadFilter();
+  const gain = context.createGain();
+  source.buffer = buffer;
+  band.type = 'bandpass';
+  band.frequency.value = center;
+  band.Q.value = 0.8;
+  gain.gain.value = loudness;
+  source.connect(band);
+  band.connect(gain);
+  gain.connect(output);
+  source.start(at);
+}
+
+// The two tones each telephone key makes
+const KEYPAD = {
+  1: [697, 1209], 2: [697, 1336], 3: [697, 1477], 4: [770, 1209], 5: [770, 1336],
+  6: [770, 1477], 7: [852, 1209], 8: [852, 1336], 9: [852, 1477], 0: [941, 1336],
+};
+
+// The sound of a modem getting online, about four seconds: the dial
+// tone, the number being dialed, then the squeals and hiss of two
+// modems greeting each other, until the speaker goes quiet.
+// Gives back a function that stops it early (the Skip button).
+export function playDialUp() {
+  if (!ready()) return () => {};
+
+  const output = context.createGain();
+  // The tones below are quiet on their own; this sets how loud the
+  // whole thing is
+  output.gain.value = 3;
+  output.connect(master);
+
+  tone(output, 350, 0, 0.6, { loudness: 0.04 });
+  tone(output, 440, 0, 0.6, { loudness: 0.04 });
+
+  [...'5550199'].forEach((digit, i) => {
+    const start = 0.7 + i * 0.13;
+    for (const hz of KEYPAD[digit]) tone(output, hz, start, 0.08, { loudness: 0.04 });
+  });
+
+  // The other modem answers with a high tone, then they talk
+  tone(output, 2100, 1.8, 0.5, { loudness: 0.03 });
+  for (let i = 0; i < 4; i++) {
+    tone(output, i % 2 ? 1200 : 2400, 2.35 + i * 0.12, 0.1, { loudness: 0.03, type: 'square' });
+  }
+  tone(output, 980, 2.85, 0.35, { loudness: 0.025, type: 'sawtooth' });
+  hiss(output, 3.2, 1.1, { loudness: 0.12, center: 1800 });
+  hiss(output, 3.5, 0.8, { loudness: 0.06, center: 3200 });
+
+  return () => {
+    output.gain.setTargetAtTime(0, context.currentTime, 0.02);
+    setTimeout(() => output.disconnect(), 200);
+  };
 }

@@ -1,16 +1,27 @@
-// The web that Web Browser can reach: a handful of sites from the
-// nineties that never were. Every address ends in .web, so none of
-// them can be mistaken for a real site.
+// The web that Web Browser can reach: sites from the nineties that
+// never were. Every address ends in .web, so none of them can be
+// mistaken for a real site. The first few are here; the bigger ones
+// (a shop, an encyclopedia, a chat room, games, homepages and web
+// mail) each have their own file in the web folder.
 //
 // Each page is { title, keywords, render(url), setUp?(root, browser) }.
 // render gives back the page's HTML. Links are <a data-go="address">;
 // Web Browser follows them. setUp adds anything the page does by
-// itself, like signing the guestbook.
+// itself, like signing the guestbook. If the page keeps doing things
+// (like the chat room's chatter), setUp gives back a function that
+// stops it, which Web Browser calls when the page is left.
 
-export const HOME_PAGE = 'http://home.anachron.web/';
+import {
+  HOME_PAGE, SEEKR, escapeHtml, link, UNDER_CONSTRUCTION, BEST_VIEWED, longDate, splitAddress,
+} from './web/common.js';
+import { SITE as SHOP } from './web/shop.js';
+import { SITE as ENCYCLOPEDIA } from './web/encyclopedia.js';
+import { SITE as CHAT } from './web/chat.js';
+import { SITE as ARCADE } from './web/arcade.js';
+import { SITE as VILLAGE } from './web/geovillage.js';
+import { SITE as MAIL } from './web/mail.js';
 
-// Where the Seekr search engine lives
-const SEEKR = 'http://www.seekr.web/';
+export { HOME_PAGE };
 
 // The pages in the Favorites menu, in order
 export const FAVORITES = [
@@ -19,6 +30,12 @@ export const FAVORITES = [
   { title: "Coo's Fan Club", url: 'http://www.coo-fan-club.web/' },
   { title: 'Dial-Up Daily', url: 'http://www.dialup-daily.web/' },
   { title: 'Pixel Weather', url: 'http://www.pixel-weather.web/' },
+  { title: 'Webopedia', url: 'http://www.webopedia.web/' },
+  { title: 'Mega Mall Online', url: 'http://www.megamall.web/' },
+  { title: 'HotPost Mail', url: 'http://www.hotpost.web/' },
+  { title: 'Cyber Cafe Chat', url: 'http://www.cybercafe.web/' },
+  { title: 'Arcade Online', url: 'http://www.arcade-online.web/' },
+  { title: 'GeoVillage', url: 'http://www.geovillage.web/' },
   { title: 'The Retro Webring', url: 'http://www.retro-ring.web/' },
 ];
 
@@ -65,41 +82,6 @@ export function normalizeAddress(typed) {
   return `http://${host}${url.pathname}${url.search}`;
 }
 
-function splitAddress(url) {
-  try {
-    const parsed = new URL(url);
-    return {
-      host: parsed.hostname.toLowerCase(),
-      path: parsed.pathname === '' ? '/' : parsed.pathname,
-      query: parsed.searchParams,
-    };
-  } catch {
-    return { host: '', path: '/', query: new URLSearchParams() };
-  }
-}
-
-// ---------- Bits used on many pages ----------
-
-// Text people typed goes in as text, never as HTML
-export function escapeHtml(text) {
-  return String(text).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  })[c]);
-}
-
-const link = (url, text) => `<a href="#" data-go="${url}">${text}</a>`;
-
-// The striped "Under Construction" sign every homepage had
-const UNDER_CONSTRUCTION = `
-  <div class="web-construction"><span>UNDER CONSTRUCTION</span></div>`;
-
-const BEST_VIEWED = `
-  <p class="web-small">Best viewed with Web Browser at 640 x 480 in 256 colors.</p>`;
-
-// Today's date, the way the pages of the time wrote it
-function longDate(date = new Date()) {
-  return date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-}
 
 // ---------- The sites ----------
 
@@ -117,6 +99,12 @@ const home = {
         <tr><td>${link(SEEKR, 'Seekr Search')}</td><td>Find anything on the web. Well, almost.</td></tr>
         <tr><td>${link('http://www.dialup-daily.web/', 'Dial-Up Daily')}</td><td>The news, updated every morning (by hand).</td></tr>
         <tr><td>${link('http://www.pixel-weather.web/', 'Pixel Weather')}</td><td>Will it rain? Find out, one pixel at a time.</td></tr>
+        <tr><td>${link('http://www.webopedia.web/', 'Webopedia')}</td><td>The encyclopedia of the web. Look things up!</td></tr>
+        <tr><td>${link('http://www.hotpost.web/', 'HotPost Mail')}</td><td>Free email. You've got mail!</td></tr>
+        <tr><td>${link('http://www.megamall.web/', 'Mega Mall Online')}</td><td>Shopping from the comfort of your chair.</td></tr>
+        <tr><td>${link('http://www.cybercafe.web/', 'Cyber Cafe Chat')}</td><td>Chat with people from all over the world.</td></tr>
+        <tr><td>${link('http://www.arcade-online.web/', 'Arcade Online')}</td><td>Games you can play right in the page.</td></tr>
+        <tr><td>${link('http://www.geovillage.web/', 'GeoVillage')}</td><td>Free homepages, made by real people.</td></tr>
         <tr><td>${link('http://www.coo-fan-club.web/', "Coo's Fan Club")}</td><td>The home page of everyone's favourite pigeon.</td></tr>
         <tr><td>${link('http://www.retro-ring.web/', 'The Retro Webring')}</td><td>Hop from site to site.</td></tr>
       </table>
@@ -137,7 +125,9 @@ const seekr = {
       ${searchForm('')}
       <p class="web-center web-small">Try: ${link(`${SEEKR}search?q=pigeon`, 'pigeon')},
         ${link(`${SEEKR}search?q=weather`, 'weather')},
-        ${link(`${SEEKR}search?q=news`, 'news')}</p>
+        ${link(`${SEEKR}search?q=news`, 'news')},
+        ${link(`${SEEKR}search?q=games`, 'games')},
+        ${link(`${SEEKR}search?q=dinosaur`, 'dinosaur')}</p>
     </div>`,
   setUp: setUpSearchForm,
 };
@@ -374,7 +364,12 @@ const weather = {
 };
 
 // The sites in the Retro Webring, in ring order
-const RING = [HOME_PAGE, SEEKR, 'http://www.coo-fan-club.web/', 'http://www.dialup-daily.web/', 'http://www.pixel-weather.web/'];
+const RING = [
+  HOME_PAGE, SEEKR, 'http://www.coo-fan-club.web/', 'http://www.dialup-daily.web/', 'http://www.pixel-weather.web/',
+  'http://www.webopedia.web/', 'http://www.arcade-online.web/', 'http://www.geovillage.web/',
+  'http://www.geovillage.web/petstreet/whiskers/', 'http://www.geovillage.web/musicrow/floppydisks/',
+  'http://www.geovillage.web/kidsville/tommy/',
+];
 
 const webring = {
   title: 'The Retro Webring',
@@ -404,6 +399,12 @@ const SITES = {
   'www.dialup-daily.web': { '/': news },
   'www.pixel-weather.web': { '/': weather },
   'www.retro-ring.web': { '/': webring },
+  ...SHOP,
+  ...ENCYCLOPEDIA,
+  ...CHAT,
+  ...ARCADE,
+  ...VILLAGE,
+  ...MAIL,
 };
 
 const PAGE_COUNT = Object.values(SITES).reduce((n, pages) => n + Object.values(pages).filter((p) => p.keywords).length, 0);

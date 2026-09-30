@@ -2628,3 +2628,362 @@ textarea.web-input {
 }
 
 .web-error h1 { font-size: calc(var(--px) * 18); }
+
+/* ----- Getting online: the dial-up box ----- */
+
+.browser-dialup {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #008080;
+}
+
+.browser-dialup-box {
+  width: calc(var(--px) * 260);
+  padding: calc(var(--px) * 10) calc(var(--px) * 12);
+  text-align: center;
+  background: #c0c0c0;
+  box-shadow:
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #000000,
+    inset var(--px) var(--px) 0 #dfdfdf,
+    inset calc(var(--px) * -2) calc(var(--px) * -2) 0 #808080,
+    inset calc(var(--px) * 2) calc(var(--px) * 2) 0 #ffffff;
+}
+
+.browser-dialup-title {
+  margin: 0 0 calc(var(--px) * 8);
+  font-weight: bold;
+}
+
+.browser-dialup-pictures {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--px) * 10);
+}
+
+.browser-dialup-pictures svg {
+  width: calc(var(--px) * 36);
+  height: calc(var(--px) * 36);
+}
+
+/* Three dots lighting up in turn, as the modems talk */
+.browser-dialup-dots {
+  display: flex;
+  gap: calc(var(--px) * 5);
+}
+
+.browser-dialup-dots i {
+  width: calc(var(--px) * 6);
+  height: calc(var(--px) * 6);
+  background: #808080;
+  animation: browser-dialup-dot 0.9s steps(1) infinite;
+}
+
+.browser-dialup-dots i:nth-child(2) { animation-delay: 0.3s; }
+.browser-dialup-dots i:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes browser-dialup-dot {
+  0% { background: #00c000; }
+  33% { background: #808080; }
+}
+
+.browser-dialup-step {
+  min-height: 1.3em;
+  margin: calc(var(--px) * 8) 0;
+}
+
+.browser-dialup-skip {
+  min-width: calc(var(--px) * 70);
+}
+
+/* ----- Mega Mall Online: a shop ----- */
+
+.web-mall { background: #fffbea; min-height: 100%; }
+
+.web-mall-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: calc(var(--px) * -8) calc(var(--px) * -12) calc(var(--px) * 8);
+  padding: calc(var(--px) * 4) calc(var(--px) * 12);
+  background: #cc0000;
+  color: #ffffff;
+}
+
+.web-mall-header a,
+.web-mall-header a.is-visited { color: #ffff66; }
+
+.web-mall-logo {
+  font-family: Impact, 'Arial Black', sans-serif;
+  font-size: calc(var(--px) * 18);
+  font-style: italic;
+}
+
+.web-mall-logo b { color: #ffff66; }
+
+.web-mall-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--px) * 130), 1fr));
+  gap: calc(var(--px) * 8);
+}
+
+.web-mall-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  padding: calc(var(--px) * 6);
+  text-align: center;
+  background: #ffffff;
+  border: var(--px) solid #c0a060;
+}
+
+/* The product "photo": a colored square with a symbol */
+.web-mall-photo {
+  width: calc(var(--px) * 44);
+  height: calc(var(--px) * 44);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: calc(var(--px) * 26);
+  border: var(--px) solid #000000;
+}
+
+.web-mall-price {
+  color: #cc0000;
+  font-weight: bold;
+  font-size: calc(var(--px) * 15);
+}
+
+.web-mall-cart td:nth-child(n+2) { text-align: right; }
+
+/* ----- Webopedia: an encyclopedia ----- */
+
+.web-pedia {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.web-pedia-logo {
+  text-align: center;
+  font-variant: small-caps;
+  letter-spacing: calc(var(--px) * 2);
+  font-size: calc(var(--px) * 32) !important;
+}
+
+.web-pedia-bar {
+  margin: calc(var(--px) * -8) calc(var(--px) * -12) calc(var(--px) * 8) !important;
+  padding: calc(var(--px) * 3) calc(var(--px) * 12);
+  background: #e8e8f8;
+  border-bottom: var(--px) solid #a0a0c0;
+  font-size: calc(var(--px) * 11);
+}
+
+.web-pedia h1 {
+  border-bottom: var(--px) solid #a0a0a0;
+}
+
+.web-pedia-list {
+  columns: 2;
+}
+
+/* ----- Cyber Cafe Chat ----- */
+
+.web-chat {
+  background: #e8e8e8;
+  min-height: 100%;
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: calc(var(--px) * 12);
+}
+
+.web-chat h1 { color: #000080; }
+
+/* The conversation on the left, who's there on the right, and the
+   box to type in underneath */
+.web-chat-room:not([hidden]) {
+  display: grid;
+  grid-template-columns: 1fr calc(var(--px) * 120);
+  gap: calc(var(--px) * 6);
+}
+
+.web-chat-log,
+.web-chat-side {
+  height: calc(var(--px) * 170);
+  overflow-y: auto;
+  padding: calc(var(--px) * 4);
+  background: #ffffff;
+  border: var(--px) solid #808080;
+  box-shadow: inset var(--px) var(--px) 0 #000000;
+}
+
+.web-chat-line {
+  margin-bottom: calc(var(--px) * 2);
+  overflow-wrap: anywhere;
+}
+
+.web-chat-line.is-system { color: #008000; }
+
+.web-chat-people {
+  margin: calc(var(--px) * 4) 0 0 !important;
+  padding-left: calc(var(--px) * 14);
+  overflow-wrap: anywhere;
+}
+
+.web-chat-say {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: calc(var(--px) * 6);
+}
+
+.web-chat-say .web-input { flex: 1; }
+
+/* ----- Arcade Online ----- */
+
+.web-arcade {
+  min-height: 100%;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.web-arcade a { color: #00ffff; }
+.web-arcade a.is-visited { color: #ff66ff; }
+.web-arcade .web-table th { background: #ff00aa; }
+.web-arcade .web-small { color: #aaaaaa; }
+
+.web-arcade-title {
+  text-align: center;
+  color: #ffff00;
+  letter-spacing: calc(var(--px) * 4);
+  text-shadow: calc(var(--px) * 2) calc(var(--px) * 2) 0 #ff00aa;
+}
+
+.web-ttt {
+  display: grid;
+  grid-template-columns: repeat(3, calc(var(--px) * 40));
+  justify-content: center;
+  gap: calc(var(--px) * 3);
+  margin-bottom: calc(var(--px) * 8);
+}
+
+.web-ttt-cell {
+  height: calc(var(--px) * 40);
+  padding: 0;
+  border: calc(var(--px) * 2) solid #00ffff;
+  background: #000033;
+  color: #ffffff;
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: calc(var(--px) * 24) !important;
+  font-weight: bold;
+}
+
+.web-ttt-cell.is-x { color: #ffff00 !important; }
+.web-ttt-cell.is-o { color: #ff66aa !important; }
+
+.web-arcade .web-input { font-family: 'Courier New', Courier, monospace; width: calc(var(--px) * 60); }
+
+/* ----- GeoVillage homepages ----- */
+
+.web-village { background: #f0fff0; min-height: 100%; }
+.web-village h1 { text-align: center; color: #006000; }
+
+.web-cats { background: #ffe8f4; min-height: 100%; }
+.web-cats h1 { color: #cc0077; }
+
+.web-ascii {
+  margin: 0 auto calc(var(--px) * 8);
+  width: max-content;
+  font-size: calc(var(--px) * 14);
+  line-height: 1.1;
+}
+
+.web-band {
+  min-height: 100%;
+  background: #1a0033;
+  color: #e0d0ff;
+}
+
+.web-band h1 { color: #00ff66; letter-spacing: calc(var(--px) * 3); }
+.web-band a { color: #66ffcc; }
+.web-band a.is-visited { color: #cc99ff; }
+.web-band .web-table th { background: #660099; }
+.web-lyrics { font-style: italic; text-align: center; }
+
+.web-dinos {
+  min-height: 100%;
+  background: #fff4c0;
+  font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+}
+
+.web-dinos h1 { color: #208000; }
+
+/* ----- HotPost Mail ----- */
+
+.web-mail {
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: calc(var(--px) * 12);
+}
+
+.web-mail-header {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--px) * 14);
+  margin: calc(var(--px) * -8) calc(var(--px) * -12) calc(var(--px) * 8);
+  padding: calc(var(--px) * 4) calc(var(--px) * 12);
+  background: #ff8800;
+}
+
+.web-mail-header a,
+.web-mail-header a.is-visited { color: #ffffff; font-weight: bold; }
+.web-mail-header .is-current a { color: #000000; text-decoration: none; }
+
+.web-mail-logo {
+  font-size: calc(var(--px) * 17);
+  font-style: italic;
+  color: #ffffff;
+}
+
+.web-mail-logo b { color: #660000; }
+
+.web-mail-list {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.web-mail-list th {
+  background: #ffe0b0;
+  text-align: left;
+}
+
+.web-mail-list th,
+.web-mail-list td {
+  padding: calc(var(--px) * 3) calc(var(--px) * 6);
+  border-bottom: var(--px) solid #e0c090;
+  overflow-wrap: anywhere;
+}
+
+.web-mail-list .is-unread { font-weight: bold; }
+
+.web-mail-fields td {
+  padding: calc(var(--px) * 2) calc(var(--px) * 4);
+}
+
+.web-mail-fields .web-input { width: calc(var(--px) * 240); }
+
+.web-mail-body {
+  margin-bottom: calc(var(--px) * 8);
+  padding: calc(var(--px) * 8);
+  background: #ffffff;
+  border: var(--px) solid #c0c0c0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.web-mail-compose textarea.web-input {
+  display: block;
+  width: 100%;
+  margin: calc(var(--px) * 4) 0;
+}

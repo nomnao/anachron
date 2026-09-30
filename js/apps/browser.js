@@ -9,13 +9,29 @@
 //   Alt+Left and Alt+Right go back and forward, F5 refreshes.
 // - Favorites lists every site.
 // - Pointing at a link shows where it goes, down in the status bar.
+// - The first time it opens, the modem dials up to get online,
+//   squeals and all (the speaker in the taskbar can silence it).
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { HOME_PAGE, FAVORITES, findPage, notFoundPage, normalizeAddress } from './web-pages.js';
+import { playDialUp } from '../system/sound.js';
 
 // Pages the dial-up modem has already fetched this session show up
 // in purple, like visited links always did
 const visited = new Set();
+
+// Whether the modem has dialed up since ANACHRON was switched on
+let online = false;
+
+// What the connection box says while dialing up, and when (in
+// milliseconds from the start)
+const DIAL_UP_STEPS = [
+  [0, 'Dialing 555-0199...'],
+  [1800, 'Verifying user name and password...'],
+  [3300, 'Logging on to network...'],
+  [4300, 'Connected at 28,800 bps'],
+];
+const DIAL_UP_LENGTH = 5000;
 
 const TOOLBAR = [
   { action: 'back', label: 'Back', icon: '<path d="M10 3L5 8l5 5" fill="none" stroke="#000" stroke-width="2"/>' },
@@ -88,6 +104,11 @@ export function createApp(context) {
     // The page being fetched (a timer), or null when nothing is loading
     loading: null,
     current: null,
+    // Stops what the page showing keeps doing (e.g. a chat room's
+    // chatter), or null
+    cleanUp: null,
+    // The dial-up connection in progress: { timers, stopSound }
+    dialing: null,
     go: (url) => navigate(browser, url),
   };
 
@@ -137,11 +158,70 @@ export function createApp(context) {
     if (event.key === 'Escape' && browser.loading) stop(browser);
   });
 
-  context.onClose(() => clearTimeout(browser.loading));
+  context.onClose(() => {
+    clearTimeout(browser.loading);
+    leavePage(browser);
+    finishDialing(browser);
+  });
 
-  navigate(browser, HOME_PAGE);
+  if (online) navigate(browser, HOME_PAGE);
+  else dialUp(browser);
   return root;
 }
+
+// ---------- Getting online ----------
+
+// The first time: a box shows the modem dialing, with its sound,
+// then the home page opens. Skip goes straight there.
+function dialUp(browser) {
+  browser.root.classList.add('is-loading');
+  browser.setTitle('Connecting... - Web Browser');
+  setStatus(browser, 'Connecting to the Internet...');
+  browser.page.innerHTML = `
+    <div class="browser-dialup">
+      <div class="browser-dialup-box">
+        <p class="browser-dialup-title">Connect To The Internet</p>
+        <div class="browser-dialup-pictures">
+          ${DIAL_UP_COMPUTER}
+          <span class="browser-dialup-dots"><i></i><i></i><i></i></span>
+          ${DIAL_UP_COMPUTER}
+        </div>
+        <p class="browser-dialup-step"></p>
+        <button class="push-button browser-dialup-skip">Skip</button>
+      </div>
+    </div>`;
+
+  const step = browser.page.querySelector('.browser-dialup-step');
+  const timers = DIAL_UP_STEPS.map(([at, text]) => setTimeout(() => {
+    step.textContent = text;
+  }, at));
+  timers.push(setTimeout(() => connected(browser), DIAL_UP_LENGTH));
+  browser.dialing = { timers, stopSound: playDialUp() };
+
+  browser.page.querySelector('.browser-dialup-skip').addEventListener('click', () => connected(browser));
+}
+
+function connected(browser) {
+  finishDialing(browser);
+  online = true;
+  navigate(browser, HOME_PAGE);
+}
+
+function finishDialing(browser) {
+  if (!browser.dialing) return;
+  browser.dialing.timers.forEach((timer) => clearTimeout(timer));
+  browser.dialing.stopSound();
+  browser.dialing = null;
+}
+
+// A computer for the dial-up box: one is yours, one is the internet's
+const DIAL_UP_COMPUTER = `
+  <svg viewBox="0 0 24 24" shape-rendering="crispEdges">
+    <rect x="3.5" y="2.5" width="17" height="13" fill="#c0c0c0" stroke="#000"/>
+    <rect x="5.5" y="4.5" width="13" height="9" fill="#008080" stroke="#404040"/>
+    <rect x="8" y="16" width="8" height="2" fill="#808080"/>
+    <rect x="2.5" y="18.5" width="19" height="4" fill="#c0c0c0" stroke="#000"/>
+  </svg>`;
 
 // ---------- Going places ----------
 
@@ -150,6 +230,12 @@ export function createApp(context) {
 // Refresh), which mustn't add to it.
 function navigate(browser, url, { record = true } = {}) {
   stopLoading(browser);
+  // Going somewhere while the modem dials (Home, Favorites...)
+  // finishes connecting straight away
+  if (browser.dialing) {
+    finishDialing(browser);
+    online = true;
+  }
 
   if (record) {
     browser.history = browser.history.slice(0, browser.index + 1);
@@ -171,9 +257,10 @@ function show(browser, url) {
   browser.root.classList.remove('is-loading');
 
   const page = findPage(url) ?? notFoundPage(url);
+  leavePage(browser);
   browser.page.innerHTML = page.render(url);
   browser.page.scrollTop = 0;
-  page.setUp?.(browser.page, browser);
+  browser.cleanUp = page.setUp?.(browser.page, browser) ?? null;
 
   browser.current = url;
   visited.add(url);
@@ -182,6 +269,12 @@ function show(browser, url) {
   browser.setTitle(`${page.title} - Web Browser`);
   setStatus(browser, 'Done');
   updateButtons(browser);
+}
+
+// Stops anything the page that was showing keeps doing
+function leavePage(browser) {
+  browser.cleanUp?.();
+  browser.cleanUp = null;
 }
 
 function goBack(browser) {
