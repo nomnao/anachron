@@ -19,7 +19,9 @@ body {
 }
 
 #workstation {
-  --w: min(92vw, 94vh);
+  /* The monitor is as big as fits the window: the whole computer,
+     stand included, is about 0.93 times as tall as it is wide */
+  --w: min(96vw, 104vh);
   --u: calc(var(--w) / 100);
 
   /* Fine plastic grain, drawn by an SVG noise filter */
@@ -43,7 +45,7 @@ body {
   position: relative;
   z-index: 3;
   width: var(--w);
-  padding: calc(var(--u) * 4.6) calc(var(--u) * 5.2) 0;
+  padding: calc(var(--u) * 3.2) calc(var(--u) * 3.6) 0;
   border-radius: calc(var(--u) * 2.4);
   background:
     var(--grain),
@@ -60,7 +62,7 @@ body {
 /* The sloped, recessed frame around the tube */
 #bezel {
   position: relative;
-  padding: calc(var(--u) * 2.2);
+  padding: calc(var(--u) * 1.6);
   border-radius: calc(var(--u) * 1.6);
   background:
     var(--grain),
@@ -76,7 +78,7 @@ body {
 #crt-screen {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border-radius: calc(var(--u) * 4) / calc(var(--u) * 4.6);
+  border-radius: calc(var(--u) * 3) / calc(var(--u) * 3.4);
   background:
     radial-gradient(ellipse 75% 70% at 50% 48%, #2b4543 0%, #1e3331 55%, #122120 85%, #0a1413 100%);
   box-shadow:
@@ -94,8 +96,8 @@ body {
 /* Reflections on the curved glass, layered on top of the screen */
 #glass {
   position: absolute;
-  inset: calc(var(--u) * 2.2);
-  border-radius: calc(var(--u) * 4) / calc(var(--u) * 4.6);
+  inset: calc(var(--u) * 1.6);
+  border-radius: calc(var(--u) * 3) / calc(var(--u) * 3.4);
   pointer-events: none;
   background:
     radial-gradient(ellipse 34% 20% at 70% 15%, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.08) 55%, transparent 100%),

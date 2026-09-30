@@ -10,15 +10,17 @@
   container-type: inline-size;
 }
 
-/* The picture doesn't reach the edge of the glass, just like on a
-   real CRT, so it is inset a little. The desktop is 93cqw wide and
-   we treat that as 640 "virtual pixels". --px is one of them,
-   so everything inside scales with the monitor. */
+/* The picture doesn't quite reach the edge of the glass, just like
+   on a real CRT, so it is inset a little, leaving a thin black edge.
+   --px is one "virtual pixel": the desktop is about 700 x 520 of
+   them, and everything inside scales with the monitor.
+   (cqw is 1% of the screen's width inside its padding, so the
+   desktop, which ignores that padding, is about 105cqw wide.) */
 #desktop {
-  --px: calc(93cqw / 640);
+  --px: calc(104.6cqw / 700);
 
   position: absolute;
-  inset: 3cqw 3.5cqw;
+  inset: 1.7cqw 1.8cqw;
   border-radius: calc(var(--px) * 8);
   overflow: hidden;
   background: #008080;
