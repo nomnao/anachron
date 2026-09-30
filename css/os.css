@@ -2987,3 +2987,258 @@ textarea.web-input {
   width: 100%;
   margin: calc(var(--px) * 4) 0;
 }
+
+/* ----- NetRadio 95: a hi-fi tuner ----- */
+
+.web-radio {
+  min-height: 100%;
+  background: #2a2a2a;
+  color: #e0e0e0;
+  font-family: Tahoma, Verdana, sans-serif;
+  font-size: calc(var(--px) * 12);
+}
+
+.web-radio h1 {
+  text-align: center;
+  color: #ffb000;
+  letter-spacing: calc(var(--px) * 2);
+}
+
+.web-radio .web-small { color: #ffcc66; }
+.web-radio .web-table th { background: #604000; }
+
+/* The brushed-metal front of the radio */
+.web-radio-set {
+  width: min(100%, calc(var(--px) * 430));
+  margin: 0 auto calc(var(--px) * 8);
+  padding: calc(var(--px) * 8);
+  background: linear-gradient(180deg, #d8d8d8, #a8a8a8);
+  border: var(--px) solid #000000;
+  color: #000000;
+}
+
+/* A glowing green display with the frequency, station and a level meter */
+.web-radio-display {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 8);
+  height: calc(var(--px) * 44);
+  padding: 0 calc(var(--px) * 8);
+  background: #102010;
+  color: #60ff60;
+  font-family: 'Courier New', Courier, monospace;
+  box-shadow: inset var(--px) var(--px) 0 #000000;
+}
+
+.web-radio-freq {
+  font-size: calc(var(--px) * 22);
+  font-weight: bold;
+}
+
+.web-radio-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.web-radio-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--px) * 2);
+  height: calc(var(--px) * 26);
+}
+
+.web-radio-bars i {
+  width: calc(var(--px) * 4);
+  height: calc(var(--px) * 3);
+  background: #60ff60;
+}
+
+/* The meter only dances while music plays */
+.web-radio-set.is-playing .web-radio-bars i {
+  animation: web-radio-level 0.6s ease-in-out infinite alternate;
+}
+
+.web-radio-set.is-playing .web-radio-bars i:nth-child(2n) { animation-duration: 0.45s; }
+.web-radio-set.is-playing .web-radio-bars i:nth-child(3n) { animation-duration: 0.7s; }
+.web-radio-set.is-playing .web-radio-bars i:nth-child(4n+1) { animation-delay: -0.2s; }
+
+@keyframes web-radio-level {
+  to { height: calc(var(--px) * 24); }
+}
+
+.web-radio-presets {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: calc(var(--px) * 4);
+  margin: calc(var(--px) * 8) 0;
+}
+
+.web-radio-presets .push-button {
+  min-width: 0;
+  height: auto;
+  padding: calc(var(--px) * 4) 0;
+  line-height: 1.2;
+}
+
+/* The station playing stays pushed in */
+.web-radio-presets .push-button.is-on {
+  box-shadow:
+    inset var(--px) var(--px) 0 #000000,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+  font-weight: bold;
+}
+
+.web-radio-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.web-radio-controls label {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+}
+
+.web-radio-controls input {
+  width: calc(var(--px) * 120);
+}
+
+/* ----- Pixel Pets Shelter ----- */
+
+.web-pets {
+  min-height: 100%;
+  background:
+    radial-gradient(circle, #ffe0ec calc(var(--px) * 3), transparent calc(var(--px) * 3.5)) 0 0 / calc(var(--px) * 24) calc(var(--px) * 24),
+    #fff7fb;
+  font-family: 'Comic Sans MS', 'Comic Sans', Tahoma, sans-serif;
+  font-size: calc(var(--px) * 12);
+}
+
+.web-pets h1 {
+  text-align: center;
+  color: #d0406a;
+}
+
+/* Tiny pixel pictures, drawn big and blocky */
+.web-pet-picture {
+  width: calc(var(--px) * 48);
+  height: calc(var(--px) * 36);
+}
+
+.web-pet-picture.is-big {
+  width: calc(var(--px) * 120);
+  height: calc(var(--px) * 90);
+}
+
+.web-pets-have {
+  padding: calc(var(--px) * 4);
+  background: #fff0a0;
+  border: var(--px) dashed #d0a000;
+}
+
+.web-pets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(calc(var(--px) * 130), 1fr));
+  gap: calc(var(--px) * 8);
+}
+
+.web-pets-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  padding: calc(var(--px) * 6);
+  text-align: center;
+  background: #ffffff;
+  border: calc(var(--px) * 2) solid #ffb0c8;
+  border-radius: calc(var(--px) * 6);
+}
+
+.web-pets-adopt,
+.web-pets-home {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--px) * 14);
+}
+
+.web-pets-certificate {
+  width: min(100%, calc(var(--px) * 340));
+  margin: 0 auto calc(var(--px) * 10);
+  padding: calc(var(--px) * 12);
+  text-align: center;
+  background: #fffdf0;
+  border: calc(var(--px) * 6) double #c09030;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+.web-pets-certificate-title {
+  font-size: calc(var(--px) * 20);
+  font-style: italic;
+  color: #806010;
+}
+
+/* Where the pet lives, with a speech bubble above it */
+.web-pets-stage {
+  position: relative;
+  padding: calc(var(--px) * 24) calc(var(--px) * 10) calc(var(--px) * 6);
+  background: linear-gradient(180deg, #cfefff 70%, #9fd98f 70%);
+  border: calc(var(--px) * 2) solid #ffb0c8;
+}
+
+.web-pets-stage .web-pet-picture[data-mood="sleepy"] { transform: rotate(-8deg); opacity: 0.8; }
+.web-pets-stage .web-pet-picture[data-mood="sad"] { filter: grayscale(0.5); }
+
+.web-pets-stage .web-pet-picture.is-hopping {
+  animation: web-pets-hop 0.5s ease-out;
+}
+
+@keyframes web-pets-hop {
+  40% { transform: translateY(calc(var(--px) * -14)); }
+}
+
+.web-pets-bubble {
+  position: absolute;
+  top: calc(var(--px) * 4);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: calc(var(--px) * 1) calc(var(--px) * 6);
+  background: #ffffff;
+  border: var(--px) solid #000000;
+  border-radius: calc(var(--px) * 8);
+  white-space: nowrap;
+}
+
+.web-pets-mood {
+  font-size: calc(var(--px) * 14);
+  font-weight: bold;
+}
+
+.web-pets-stats td {
+  padding: calc(var(--px) * 2) calc(var(--px) * 4) calc(var(--px) * 2) 0;
+}
+
+.web-pets-bar {
+  display: block;
+  width: calc(var(--px) * 110);
+  height: calc(var(--px) * 10);
+  background: #ffffff;
+  border: var(--px) solid #808080;
+}
+
+.web-pets-bar i {
+  display: block;
+  height: 100%;
+  background: #40c060;
+}
+
+.web-pets-bar i.is-low { background: #e04040; }
+
+.web-pets-actions {
+  display: flex;
+  gap: calc(var(--px) * 4);
+}

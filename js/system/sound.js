@@ -88,6 +88,13 @@ function createEcho() {
   return input;
 }
 
+// For music.js: the audio context and the main volume, or null if
+// the browser can't make sound. Music plays through the main volume,
+// so the taskbar speaker silences it too.
+export function getAudio() {
+  return context ? { context, master } : null;
+}
+
 // Whether a sound should play now
 function ready() {
   return context && !muted;
@@ -97,7 +104,7 @@ function ready() {
 
 // The frequency of a note like 'C5' or 'F#4'
 const NOTE_STEPS = { C: -9, D: -7, E: -5, F: -4, G: -2, A: 0, B: 2 };
-function frequency(note) {
+export function frequency(note) {
   const [, letter, sharp, octave] = note.match(/^([A-G])(#?)(\d)$/);
   const steps = NOTE_STEPS[letter] + (sharp ? 1 : 0) + (Number(octave) - 4) * 12;
   return 440 * 2 ** (steps / 12);

@@ -1,8 +1,9 @@
 // The web that Web Browser can reach: sites from the nineties that
 // never were. Every address ends in .web, so none of them can be
 // mistaken for a real site. The first few are here; the bigger ones
-// (a shop, an encyclopedia, a chat room, games, homepages and web
-// mail) each have their own file in the web folder.
+// (a shop, an encyclopedia, a chat room, games, homepages, web mail,
+// a radio and a pet shelter) each have their own file in the web
+// folder.
 //
 // Each page is { title, keywords, render(url), setUp?(root, browser) }.
 // render gives back the page's HTML. Links are <a data-go="address">;
@@ -20,6 +21,8 @@ import { SITE as CHAT } from './web/chat.js';
 import { SITE as ARCADE } from './web/arcade.js';
 import { SITE as VILLAGE } from './web/geovillage.js';
 import { SITE as MAIL } from './web/mail.js';
+import { SITE as RADIO } from './web/radio.js';
+import { SITE as PETS } from './web/pets.js';
 
 export { HOME_PAGE };
 
@@ -36,6 +39,8 @@ export const FAVORITES = [
   { title: 'Cyber Cafe Chat', url: 'http://www.cybercafe.web/' },
   { title: 'Arcade Online', url: 'http://www.arcade-online.web/' },
   { title: 'GeoVillage', url: 'http://www.geovillage.web/' },
+  { title: 'NetRadio 95', url: 'http://www.netradio.web/' },
+  { title: 'Pixel Pets Shelter', url: 'http://www.pixelpets.web/' },
   { title: 'The Retro Webring', url: 'http://www.retro-ring.web/' },
 ];
 
@@ -105,6 +110,8 @@ const home = {
         <tr><td>${link('http://www.cybercafe.web/', 'Cyber Cafe Chat')}</td><td>Chat with people from all over the world.</td></tr>
         <tr><td>${link('http://www.arcade-online.web/', 'Arcade Online')}</td><td>Games you can play right in the page.</td></tr>
         <tr><td>${link('http://www.geovillage.web/', 'GeoVillage')}</td><td>Free homepages, made by real people.</td></tr>
+        <tr><td>${link('http://www.netradio.web/', 'NetRadio 95')}</td><td>Listen to the radio, right on your computer!</td></tr>
+        <tr><td>${link('http://www.pixelpets.web/', 'Pixel Pets Shelter')}</td><td>Adopt a pixel pet and look after it.</td></tr>
         <tr><td>${link('http://www.coo-fan-club.web/', "Coo's Fan Club")}</td><td>The home page of everyone's favourite pigeon.</td></tr>
         <tr><td>${link('http://www.retro-ring.web/', 'The Retro Webring')}</td><td>Hop from site to site.</td></tr>
       </table>
@@ -368,7 +375,7 @@ const RING = [
   HOME_PAGE, SEEKR, 'http://www.coo-fan-club.web/', 'http://www.dialup-daily.web/', 'http://www.pixel-weather.web/',
   'http://www.webopedia.web/', 'http://www.arcade-online.web/', 'http://www.geovillage.web/',
   'http://www.geovillage.web/petstreet/whiskers/', 'http://www.geovillage.web/musicrow/floppydisks/',
-  'http://www.geovillage.web/kidsville/tommy/',
+  'http://www.geovillage.web/kidsville/tommy/', 'http://www.netradio.web/', 'http://www.pixelpets.web/',
 ];
 
 const webring = {
@@ -405,6 +412,8 @@ const SITES = {
   ...ARCADE,
   ...VILLAGE,
   ...MAIL,
+  ...RADIO,
+  ...PETS,
 };
 
 const PAGE_COUNT = Object.values(SITES).reduce((n, pages) => n + Object.values(pages).filter((p) => p.keywords).length, 0);
