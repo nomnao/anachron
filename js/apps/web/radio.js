@@ -33,6 +33,9 @@ function drumBeat(bars, kicks = [0, 2]) {
 const PIXEL_PARADE = {
   bpm: 132,
   beats: 16,
+  // Square waves sound louder than they measure: this brings it in
+  // line with the other stations
+  volume: 0.85,
   tracks: [
     { instrument: 'lead', notes: [
       [0, 'E5', 1], [1, 'G5', 1], [2, 'C6', 1.5], [3.5, 'B5', 0.5],
@@ -50,7 +53,7 @@ const PIXEL_PARADE = {
       const octave = root.replace(/\d/, (n) => Number(n) + 1);
       return [0, 1, 2, 3].flatMap((beat) => [[bar * 4 + beat, root, 0.4], [bar * 4 + beat + 0.5, octave, 0.4]]);
     }) },
-    { instrument: 'drums', volume: 0.45, notes: drumBeat(4) },
+    { instrument: 'drums', volume: 0.7, notes: drumBeat(4) },
   ],
 };
 

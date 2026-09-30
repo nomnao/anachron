@@ -6,6 +6,8 @@
 //       { instrument: 'drums', notes: [[0, 'kick'], [0.5, 'hat'], ...] },
 //   ] }
 // Each note is [beat it starts on, note, how many beats it lasts].
+// A song can also have a volume (1 unless given), to even out songs
+// that come out louder than others.
 // The song plays round and round until it is stopped.
 //
 // Every sound is made on the spot with the Web Audio API, through
@@ -154,8 +156,11 @@ export function playSong(song, { volume = 0.8 } = {}) {
   if (!audio) return null;
   const { context, master } = audio;
 
+  // The song's own volume evens it out with the others; the
+  // listener's volume goes on top
+  const level = song.volume ?? 1;
   const output = context.createGain();
-  output.gain.value = volume;
+  output.gain.value = volume * level;
   output.connect(master);
 
   // Every note of every track, in the order they're played
@@ -205,7 +210,7 @@ export function playSong(song, { volume = 0.8 } = {}) {
       setTimeout(() => output.disconnect(), 400);
     },
     setVolume(value) {
-      output.gain.setTargetAtTime(value, context.currentTime, 0.05);
+      output.gain.setTargetAtTime(value * level, context.currentTime, 0.05);
     },
   };
 }
