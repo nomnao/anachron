@@ -258,8 +258,12 @@ function show(browser, url) {
 
   const page = findPage(url) ?? notFoundPage(url);
   leavePage(browser);
+  // The link (or button) that had the keyboard goes away with the old
+  // page; the window keeps the keyboard, so F5 and Alt+arrows still work
+  const hadKeyboard = browser.page.contains(document.activeElement);
   browser.page.innerHTML = page.render(url);
   browser.page.scrollTop = 0;
+  if (hadKeyboard) browser.root.focus({ preventScroll: true });
   browser.cleanUp = page.setUp?.(browser.page, browser) ?? null;
 
   browser.current = url;
