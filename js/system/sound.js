@@ -1,6 +1,7 @@
 // The computer's sounds: a beep when the power comes on, a chime
 // when the desktop appears, a goodbye when it shuts down, and the
-// modem's squeals when Web Browser dials up to get online.
+// modem's squeals when Web Browser dials up to get online, and
+// Messenger's chimes and nudges.
 //
 // There are no sound files. Every sound is made on the spot with
 // the Web Audio API: simple waves, shaped to sound like bells and
@@ -299,4 +300,47 @@ export function playDialUp() {
     output.gain.setTargetAtTime(0, context.currentTime, 0.02);
     setTimeout(() => output.disconnect(), 200);
   };
+}
+
+// ---------- Messenger ----------
+
+// A new message: two quick notes going up
+export function playMessageChime() {
+  if (!ready()) return;
+  bell('E6', 0, { length: 0.5, loudness: 0.14 });
+  bell('A6', 0.11, { length: 0.7, loudness: 0.14 });
+}
+
+// A friend has signed in: three soft notes climbing
+export function playSignIn() {
+  if (!ready()) return;
+  bell('C6', 0, { length: 0.6, loudness: 0.1 });
+  bell('E6', 0.12, { length: 0.6, loudness: 0.1 });
+  bell('G6', 0.24, { length: 0.9, loudness: 0.12 });
+}
+
+// A nudge: a low rattling buzz, like a phone vibrating on a desk
+export function playNudge() {
+  if (!ready()) return;
+  const at = context.currentTime;
+  const oscillator = context.createOscillator();
+  const rattle = context.createOscillator();
+  const depth = context.createGain();
+  const gain = context.createGain();
+  oscillator.type = 'square';
+  oscillator.frequency.value = 110;
+  // A fast wobble in the volume makes it rattle
+  rattle.frequency.value = 28;
+  depth.gain.value = 0.05;
+  gain.gain.setValueAtTime(0.05, at);
+  gain.gain.setValueAtTime(0.05, at + 0.5);
+  gain.gain.linearRampToValueAtTime(0, at + 0.6);
+  rattle.connect(depth);
+  depth.connect(gain.gain);
+  oscillator.connect(gain);
+  gain.connect(master);
+  oscillator.start(at);
+  rattle.start(at);
+  oscillator.stop(at + 0.65);
+  rattle.stop(at + 0.65);
 }

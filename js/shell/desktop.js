@@ -4,6 +4,7 @@ import { APPS, LISTED_APPS, RECYCLE_BIN_ICONS, fileTypeOf } from '../app.js';
 import {
   initWindowManager, openWindow, closeAllWindows, requestClose, requestCloseAll, hasWindow, restoreWindow,
   renameWindow, setWindowTitle, setWindowSize, onWindowsChanged, taskbarClick,
+  shakeWindow, callForAttention,
 } from '../system/wm.js';
 import {
   listFiles, listRecycled, onFilesChanged, onFileRenamed, onRecycleBinChanged,
@@ -619,6 +620,8 @@ async function launchApp(app, options = {}) {
   let beforeClose = null;
   // Holds the window's current id (it changes if its file is renamed)
   const handle = { id };
+  // The app's other windows (see openWindow below), by key
+  const extraWindows = new Map();
   const context = {
     fileName: options.fileName ?? null,
     setTitle(newTitle) {
@@ -645,6 +648,52 @@ async function launchApp(app, options = {}) {
     // to) true to close, false to stay open.
     beforeClose(handler) {
       beforeClose = handler;
+    },
+    // Shakes the window for a moment, or makes its taskbar button
+    // flash until it's looked at
+    shake() {
+      shakeWindow(handle.id);
+    },
+    callForAttention() {
+      callForAttention(handle.id);
+    },
+    // Lets an app open more windows of its own, like a conversation in
+    // Messenger. key tells them apart; asking for the same key again
+    // brings that window back to the front. Gives back what the app
+    // can do with the window: setTitle, focus, close, shake and
+    // callForAttention.
+    openWindow({ key, title: windowTitle, width, height, minWidth, minHeight, content, onClose }) {
+      const extraId = `${app.id}:${key}`;
+      if (hasWindow(extraId)) {
+        restoreWindow(extraId);
+        return extraWindows.get(key);
+      }
+
+      const extra = {
+        id: extraId,
+        setTitle: (newTitle) => setWindowTitle(extraId, newTitle),
+        focus: () => restoreWindow(extraId),
+        close: () => requestClose(extraId),
+        shake: () => shakeWindow(extraId),
+        callForAttention: () => callForAttention(extraId),
+      };
+      extraWindows.set(key, extra);
+      openWindow({
+        id: extraId,
+        title: windowTitle,
+        icon: app.icon,
+        width,
+        height,
+        minWidth,
+        minHeight,
+        content,
+        beside: handle.id,
+        onClose: () => {
+          extraWindows.delete(key);
+          onClose?.();
+        },
+      });
+      return extra;
     },
   };
 
@@ -693,6 +742,8 @@ function renderTaskbarButtons(windowList) {
     const button = document.createElement('button');
     button.className = 'taskbar-button';
     button.classList.toggle('is-pressed', win.active);
+    // Flashes when the window wants you to look (a new message)
+    button.classList.toggle('is-flashing', Boolean(win.attention));
     button.innerHTML = `
       <img src="${win.icon}" alt="">
       <span class="taskbar-button-text"></span>

@@ -339,6 +339,17 @@
   display: none;
 }
 
+/* A nudge: the window shakes from side to side for a moment */
+.window.is-shaking {
+  animation: window-shake 0.5s linear;
+}
+
+@keyframes window-shake {
+  0%, 100% { transform: none; }
+  10%, 50%, 90% { transform: translate(calc(var(--px) * -6), calc(var(--px) * 2)); }
+  30%, 70% { transform: translate(calc(var(--px) * 6), calc(var(--px) * -2)); }
+}
+
 /* Everything below the title bar. Each app decides what goes in it. */
 .window-body {
   flex: 1;
@@ -667,6 +678,16 @@
 
 /* The active window's button looks pushed in, with a fine
    white-and-grey checkerboard, and bold text */
+/* A window wants you to look (a new message): its button flashes */
+.taskbar-button.is-flashing {
+  animation: taskbar-flash 1s steps(1) infinite;
+}
+
+@keyframes taskbar-flash {
+  0% { background: #000080; color: #ffffff; }
+  50% { background: #c0c0c0; color: #000000; }
+}
+
 .taskbar-button.is-pressed {
   font-weight: bold;
   background:
@@ -3256,4 +3277,395 @@ textarea.web-input {
 .web-pets-actions {
   display: flex;
   gap: calc(var(--px) * 4);
+}
+
+/* ================= CHITCHAT MESSENGER ================= */
+
+.messenger,
+.messenger-chat {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 4);
+  outline: none;
+}
+
+.messenger-logo {
+  width: calc(var(--px) * 48);
+  height: calc(var(--px) * 48);
+}
+
+.messenger-input {
+  font: inherit;
+  height: calc(var(--px) * 20);
+  padding: 0 calc(var(--px) * 3);
+  border: none;
+  background: #ffffff;
+  color: #000000;
+}
+
+select.messenger-input {
+  box-shadow:
+    inset var(--px) var(--px) 0 #808080,
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 #ffffff;
+}
+
+/* ----- Signing in ----- */
+
+.messenger-signin {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: calc(var(--px) * 8);
+  background: linear-gradient(180deg, #ffffff, #d8e8ff);
+}
+
+.messenger-brand {
+  margin: calc(var(--px) * 4) 0 calc(var(--px) * 10);
+  font-size: calc(var(--px) * 14);
+  font-weight: bold;
+  color: #1a4f9a;
+}
+
+.messenger-signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 6);
+  width: 100%;
+}
+
+.messenger-signin-form label {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 2);
+}
+
+.messenger-signin-form .push-button {
+  align-self: center;
+}
+
+.messenger-note {
+  min-height: 1.2em;
+  margin: 0;
+  color: #800000;
+  text-align: center;
+}
+
+/* While signing in, the bubbles turn round and round */
+.messenger-signin.is-signing-in .messenger-logo {
+  animation: browser-spin 1.2s linear infinite;
+}
+
+/* ----- Your name, status and personal message ----- */
+
+.messenger-me {
+  display: flex;
+  gap: calc(var(--px) * 6);
+  padding: calc(var(--px) * 4);
+  background: linear-gradient(180deg, #e8f0ff, #c8dcff);
+  border-bottom: var(--px) solid #8090b0;
+}
+
+.messenger-avatar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--px) * 36);
+  height: calc(var(--px) * 36);
+  background: #3a8ee6;
+  color: #ffffff;
+  font-size: calc(var(--px) * 18);
+  font-weight: bold;
+  border: calc(var(--px) * 2) solid #20c020;
+}
+
+/* The frame round your picture shows your status */
+.messenger-avatar[data-status="busy"] { border-color: #e02020; }
+.messenger-avatar[data-status="away"] { border-color: #f0a000; }
+.messenger-avatar[data-status="offline"] { border-color: #a0a0a0; }
+
+.messenger-me-text {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 1);
+}
+
+.messenger-me-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.messenger-status,
+.messenger-message {
+  font: inherit;
+  font-size: calc(var(--px) * 10);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #303060;
+}
+
+.messenger-message {
+  font-style: italic;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.messenger-message:focus {
+  background: #ffffff;
+  outline: var(--px) solid #808080;
+}
+
+/* ----- The contact list ----- */
+
+.messenger-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: calc(var(--px) * 2);
+  background: #ffffff;
+}
+
+.messenger-group {
+  margin: calc(var(--px) * 4) 0 calc(var(--px) * 2);
+  font-weight: bold;
+  color: #1a4f9a;
+}
+
+.messenger-contact {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--px) * 4);
+  padding: calc(var(--px) * 2) calc(var(--px) * 4);
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.messenger-contact:hover { background: #e0eaff; }
+.messenger-contact:focus { outline: var(--px) dotted #000000; outline-offset: calc(var(--px) * -1); }
+.messenger-contact.is-unread .messenger-contact-name { font-weight: bold; color: #c00000; }
+
+.messenger-contact-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.messenger-contact-name,
+.messenger-contact-message {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.messenger-contact-message {
+  font-size: calc(var(--px) * 10);
+  font-style: italic;
+  color: #707070;
+}
+
+/* A little light: green online, red busy, orange away, grey offline */
+.messenger-dot {
+  flex: none;
+  width: calc(var(--px) * 9);
+  height: calc(var(--px) * 9);
+  margin-top: calc(var(--px) * 2);
+  border-radius: 50%;
+  background: #20c020;
+  border: var(--px) solid #006000;
+}
+
+.messenger-dot[data-status="busy"] { background: #e02020; border-color: #600000; }
+.messenger-dot[data-status="away"] { background: #f0a000; border-color: #805000; }
+.messenger-dot[data-status="offline"] { background: #c0c0c0; border-color: #707070; }
+
+.messenger-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ----- A conversation ----- */
+
+.messenger-chat-to {
+  display: flex;
+  gap: calc(var(--px) * 4);
+  padding: calc(var(--px) * 3) calc(var(--px) * 4);
+  background: linear-gradient(180deg, #e8f0ff, #c8dcff);
+  border-bottom: var(--px) solid #8090b0;
+}
+
+.messenger-chat-to > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.messenger-chat-status {
+  color: #505070;
+  font-size: calc(var(--px) * 10);
+}
+
+.messenger-log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: calc(var(--px) * 4);
+  background: #ffffff;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.messenger-line {
+  margin-bottom: calc(var(--px) * 5);
+  overflow-wrap: anywhere;
+}
+
+.messenger-says {
+  color: #707070;
+  font-size: calc(var(--px) * 10);
+}
+
+.messenger-text {
+  padding-left: calc(var(--px) * 8);
+  white-space: pre-wrap;
+}
+
+.messenger-line.is-me .messenger-text { color: #000080; }
+.messenger-line.is-them .messenger-text { color: #000000; }
+
+.messenger-line.is-system {
+  color: #808080;
+  font-style: italic;
+}
+
+.messenger-emoticon svg {
+  width: calc(var(--px) * 14);
+  height: calc(var(--px) * 14);
+  vertical-align: calc(var(--px) * -3);
+}
+
+.messenger-typing {
+  min-height: 1.2em;
+  margin: 0;
+  font-size: calc(var(--px) * 10);
+  font-style: italic;
+  color: #505070;
+}
+
+.messenger-tools {
+  position: relative;
+  display: flex;
+  gap: calc(var(--px) * 3);
+}
+
+.messenger-tools .push-button {
+  min-width: calc(var(--px) * 26);
+  padding: 0 calc(var(--px) * 6);
+}
+
+.messenger-smile svg {
+  width: calc(var(--px) * 14);
+  height: calc(var(--px) * 14);
+}
+
+/* The faces to choose from, popping up above the buttons */
+.messenger-picker {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(5, calc(var(--px) * 22));
+  padding: calc(var(--px) * 3);
+  background: #ffffff;
+  border: var(--px) solid #000000;
+}
+
+.messenger-picker[hidden] { display: none; }
+
+.messenger-picker button {
+  height: calc(var(--px) * 22);
+  padding: calc(var(--px) * 3);
+  border: none;
+  background: none;
+}
+
+.messenger-picker button:hover { background: #e0eaff; }
+
+.messenger-picker svg {
+  width: 100%;
+  height: 100%;
+}
+
+.messenger-send {
+  display: flex;
+  gap: calc(var(--px) * 4);
+}
+
+.messenger-type {
+  flex: 1;
+  min-width: 0;
+  resize: none;
+  padding: calc(var(--px) * 3);
+  border: none;
+  font: inherit;
+  color: #000000;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.messenger-send .push-button {
+  height: auto;
+}
+
+/* ----- Pop-ups in the corner of the screen ----- */
+
+.messenger-toast {
+  position: absolute;
+  z-index: 16000;
+  /* Left of Coo's corner, so the two don't cover each other */
+  right: calc(var(--px) * 84);
+  bottom: calc(var(--px) * 34);
+  width: calc(var(--px) * 180);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 3);
+  padding: calc(var(--px) * 4) calc(var(--px) * 6) calc(var(--px) * 8);
+  text-align: left;
+  border: var(--px) solid #1a4f9a;
+  background: linear-gradient(180deg, #ffffff, #c8dcff);
+  box-shadow: calc(var(--px) * 2) calc(var(--px) * 2) 0 rgba(0, 0, 0, 0.3);
+  animation: messenger-toast-rise 0.3s ease-out;
+}
+
+@keyframes messenger-toast-rise {
+  from { transform: translateY(calc(var(--px) * 30)); opacity: 0; }
+}
+
+.messenger-toast-title {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  font-size: calc(var(--px) * 10);
+  color: #1a4f9a;
+}
+
+.messenger-toast-title .messenger-logo {
+  width: calc(var(--px) * 14);
+  height: calc(var(--px) * 14);
+}
+
+.messenger-toast-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
 }

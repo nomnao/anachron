@@ -15,7 +15,8 @@ const MIN_HEIGHT = 120;
 const RESIZE_EDGES = ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'];
 
 // window id -> { id, title, icon, x, y, width, height, z, minimized, maximized, el,
-//                 resizable, minWidth, minHeight, onClose, beforeClose, closing }
+//                 resizable, minWidth, minHeight, onClose, beforeClose, closing,
+//                 attention }
 const windows = new Map();
 let activeId = null;
 let desktop = null;
@@ -47,6 +48,7 @@ export function getWindowList() {
     icon: win.icon,
     minimized: win.minimized,
     active: win.id === activeId,
+    attention: win.attention,
   }));
 }
 
@@ -64,9 +66,12 @@ function notify() {
 // stop anything it started, like a webcam.
 // resizable (true unless false) lets its edges be dragged, down to
 // minWidth x minHeight (optional).
+// beside (optional) is another window's id: the new window opens next
+// to it instead of in the usual place, like a conversation opening
+// next to Messenger's contact list.
 export function openWindow({
   id, title, icon, width, height, content, onClose, beforeClose,
-  resizable = true, minWidth = MIN_WIDTH, minHeight = MIN_HEIGHT,
+  resizable = true, minWidth = MIN_WIDTH, minHeight = MIN_HEIGHT, beside,
 }) {
   // Only one window per app for now: if it is already open, bring it back
   if (windows.has(id)) {
@@ -80,13 +85,24 @@ export function openWindow({
   const win = {
     id, title, icon,
     x: 110 + offset, y: 20 + offset, width, height,
-    z: 0, minimized: false, maximized: false, el: null, onClose, beforeClose, closing: false,
+    z: 0, minimized: false, maximized: false, el: null, onClose, beforeClose, closing: false, attention: false,
     resizable, minWidth: Math.min(minWidth, width), minHeight: Math.min(minHeight, height),
   };
 
+  // Next to another window: on its right if there's room, else on its
+  // left, a little lower for each window already open beside it
+  const neighbor = windows.get(beside);
+  const screen = measureDesktop();
+  if (neighbor && !neighbor.maximized && screen) {
+    const besideIt = [...windows.values()].filter((other) => other.beside === beside).length;
+    const right = neighbor.x + neighbor.width + 4;
+    win.x = right + width <= screen.width ? right : neighbor.x - width - 4;
+    win.y = neighbor.y + (besideIt % 5) * 22;
+    win.beside = beside;
+  }
+
   // A wide or tall window (like Solitaire) moves left or up so it
   // isn't cut off by the edge of the screen
-  const screen = measureDesktop();
   if (screen) {
     win.x = clamp(win.x, 0, Math.max(0, screen.width - width));
     win.y = clamp(win.y, 0, Math.max(0, screen.height - TASKBAR_HEIGHT - height));
@@ -221,11 +237,36 @@ export function focusWindow(id) {
     other.el.style.zIndex = other.z;
   });
   activeId = id;
+  // Looking at a window answers its call for attention
+  win.attention = false;
 
   for (const other of windows.values()) {
     other.el.classList.toggle('is-active', other === win);
   }
   notify();
+}
+
+// ---------- Getting noticed ----------
+
+// Makes a window's taskbar button flash until the window is brought
+// to the front, e.g. a new message in a conversation you're not
+// looking at. A window already in front doesn't need to.
+export function callForAttention(id) {
+  const win = windows.get(id);
+  if (!win || (win.id === activeId && !win.minimized)) return;
+  win.attention = true;
+  notify();
+}
+
+// Shakes a window from side to side for a moment (a "nudge")
+export function shakeWindow(id) {
+  const win = windows.get(id);
+  if (!win || win.maximized) return;
+  win.el.classList.remove('is-shaking');
+  // Reading the size restarts the animation if it was already shaking
+  void win.el.offsetWidth;
+  win.el.classList.add('is-shaking');
+  win.el.addEventListener('animationend', () => win.el.classList.remove('is-shaking'), { once: true });
 }
 
 // Gives focus to the highest window that is still visible, if any.
