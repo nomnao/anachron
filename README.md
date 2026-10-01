@@ -6,8 +6,6 @@ ANACHRON is a fictional 1990s operating system, complete with a beige CRT monito
 
 **Try it:** https://nomnao.github.io/anachron/
 
-**The illustrated guide:** [ANACHRON-Guide.pdf](ANACHRON-Guide.pdf), six magazine-style pages with pictures of every app.
-
 > ANACHRON is made for a computer with a mouse and keyboard. It opens on phones and tablets, but it is much nicer on a desktop or laptop.
 
 ## Getting started
