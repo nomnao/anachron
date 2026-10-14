@@ -3,6 +3,7 @@
 // and gives back the answer as a promise.
 
 import { fileExists } from '../system/fs.js';
+import { playChord } from '../system/sound.js';
 
 // A yes/no question. Gives back true (confirmed) or false (cancelled).
 //
@@ -14,11 +15,13 @@ import { fileExists } from '../system/fs.js';
 //   });
 //
 // With cancelLabel: null there is only one button, for simple messages.
-export async function showConfirmDialog(container, { title, message, confirmLabel = 'OK', cancelLabel = 'Cancel' }) {
+// quiet: true skips the dialog's sound, when something else has just
+// played one (like a game's winning fanfare).
+export async function showConfirmDialog(container, { title, message, confirmLabel = 'OK', cancelLabel = 'Cancel', quiet = false }) {
   const choices = [{ label: confirmLabel, value: 'confirm' }];
   if (cancelLabel) choices.push({ label: cancelLabel, value: 'cancel' });
 
-  const choice = await showChoiceDialog(container, { title, message, choices, escapeValue: 'cancel' });
+  const choice = await showChoiceDialog(container, { title, message, choices, escapeValue: 'cancel', quiet });
   return choice === 'confirm';
 }
 
@@ -40,8 +43,10 @@ export function showSaveChangesDialog(container, { title, fileName, message }) {
 
 // A message with a row of buttons. Gives back the value of the button
 // pressed, or escapeValue if Escape was pressed. The first button has
-// focus, so Enter presses it.
-function showChoiceDialog(container, { title, message, choices, escapeValue }) {
+// focus, so Enter presses it. It opens with a chord, like the real
+// thing, unless quiet.
+function showChoiceDialog(container, { title, message, choices, escapeValue, quiet = false }) {
+  if (!quiet) playChord();
   return new Promise((resolve) => {
     const overlay = createDialog(title, `
       <p class="dialog-message"></p>

@@ -1,7 +1,8 @@
 // The computer's sounds: a beep when the power comes on, a chime
 // when the desktop appears, a goodbye when it shuts down, and the
-// modem's squeals when Web Browser dials up to get online, and
-// Messenger's chimes and nudges.
+// modem's squeals when Web Browser dials up to get online,
+// Messenger's chimes and nudges, and everyday sounds: dialogs, the
+// Recycle Bin, the games, the camera's shutter and Coo.
 //
 // There are no sound files. Every sound is made on the spot with
 // the Web Audio API: simple waves, shaped to sound like bells and
@@ -343,4 +344,141 @@ export function playNudge() {
   rattle.start(at);
   oscillator.stop(at + 0.65);
   rattle.stop(at + 0.65);
+}
+
+// ---------- Everyday sounds ----------
+// Little sounds for things happening around the system: a dialog
+// asking something, a file going in the bin, a game won or lost.
+
+// A short burst of hiss, shaped by a filter whose pitch can slide
+// from one frequency to another (for crumples, clicks, a boom)
+function noiseBurst(start, length, { loudness = 0.2, type = 'bandpass', from = 2000, to = from, q = 1 } = {}) {
+  const at = context.currentTime + start;
+  const samples = Math.max(1, Math.floor(context.sampleRate * length));
+  const buffer = context.createBuffer(1, samples, context.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < samples; i++) data[i] = Math.random() * 2 - 1;
+
+  const source = context.createBufferSource();
+  const filter = context.createBiquadFilter();
+  const gain = context.createGain();
+  source.buffer = buffer;
+  filter.type = type;
+  filter.Q.value = q;
+  filter.frequency.setValueAtTime(from, at);
+  filter.frequency.exponentialRampToValueAtTime(to, at + length);
+  gain.gain.setValueAtTime(loudness, at);
+  gain.gain.exponentialRampToValueAtTime(0.001, at + length);
+  source.connect(filter);
+  filter.connect(gain);
+  gain.connect(master);
+  source.start(at);
+}
+
+// A short game-console note (a square wave)
+function beep(hz, start, length, loudness = 0.05) {
+  tone(master, hz, start, length, { loudness, type: 'square' });
+}
+
+// A dialog box asks something: three notes struck together
+export function playChord() {
+  if (!ready()) return;
+  for (const note of ['C5', 'E5', 'G5']) bell(note, 0, { length: 0.9, loudness: 0.12 });
+  bell('C6', 0.02, { length: 0.9, loudness: 0.07 });
+}
+
+// A file goes in the Recycle Bin: paper being scrunched up
+export function playCrumple() {
+  if (!ready()) return;
+  for (let i = 0; i < 7; i++) {
+    noiseBurst(i * 0.045 + Math.random() * 0.02, 0.05 + Math.random() * 0.04, {
+      loudness: 0.65, from: 2500 + Math.random() * 3000, q: 2,
+    });
+  }
+}
+
+// Emptying the Recycle Bin: a longer scrunch, then a whoosh
+export function playEmptyBin() {
+  if (!ready()) return;
+  for (let i = 0; i < 10; i++) {
+    noiseBurst(i * 0.05 + Math.random() * 0.02, 0.06, { loudness: 0.55, from: 2000 + Math.random() * 3500, q: 2 });
+  }
+  noiseBurst(0.5, 0.45, { loudness: 0.7, type: 'lowpass', from: 3000, to: 200 });
+}
+
+// Stepping on a mine: a deep boom that rumbles away
+export function playExplosion() {
+  if (!ready()) return;
+  noiseBurst(0, 1.2, { loudness: 0.6, type: 'lowpass', from: 1800, to: 60 });
+  const at = context.currentTime;
+  const oscillator = context.createOscillator();
+  const gain = context.createGain();
+  oscillator.frequency.setValueAtTime(120, at);
+  oscillator.frequency.exponentialRampToValueAtTime(35, at + 0.6);
+  gain.gain.setValueAtTime(0.35, at);
+  gain.gain.exponentialRampToValueAtTime(0.001, at + 0.7);
+  oscillator.connect(gain);
+  gain.connect(master);
+  oscillator.start(at);
+  oscillator.stop(at + 0.75);
+}
+
+// Winning a game: a little "ta-da"
+export function playFanfare() {
+  if (!ready()) return;
+  ['C5', 'E5', 'G5'].forEach((note, i) => beep(frequency(note), i * 0.1, 0.09, 0.045));
+  beep(frequency('C6'), 0.32, 0.45, 0.045);
+  for (const note of ['C5', 'E5', 'G5', 'C6']) bell(note, 0.32, { length: 1.4, loudness: 0.06 });
+}
+
+// Snake eats an apple: a quick blip going up
+export function playBlip() {
+  if (!ready()) return;
+  beep(880, 0, 0.05, 0.04);
+  beep(1320, 0.05, 0.06, 0.04);
+}
+
+// Game over: three notes going down
+export function playGameOver() {
+  if (!ready()) return;
+  ['G4', 'E4', 'C4'].forEach((note, i) => beep(frequency(note), i * 0.16, 0.14, 0.05));
+  beep(frequency('C3'), 0.5, 0.4, 0.05);
+}
+
+// A card is turned over or put down: a soft flick
+export function playCard() {
+  if (!ready()) return;
+  noiseBurst(0, 0.04, { loudness: 0.12, type: 'highpass', from: 3000 });
+}
+
+// The camera takes a picture: the shutter clicks open and shut
+export function playShutter() {
+  if (!ready()) return;
+  noiseBurst(0, 0.03, { loudness: 0.35, type: 'highpass', from: 2500 });
+  noiseBurst(0.09, 0.05, { loudness: 0.3, type: 'bandpass', from: 1500, q: 1.5 });
+}
+
+// Coo pipes up: a soft "coo-coo"
+export function playCoo() {
+  if (!ready()) return;
+  for (const [start, length] of [[0, 0.32], [0.38, 0.5]]) {
+    const at = context.currentTime + start;
+    const oscillator = context.createOscillator();
+    const soften = context.createBiquadFilter();
+    const gain = context.createGain();
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(330, at);
+    oscillator.frequency.linearRampToValueAtTime(400, at + length * 0.35);
+    oscillator.frequency.linearRampToValueAtTime(300, at + length);
+    soften.type = 'lowpass';
+    soften.frequency.value = 900;
+    gain.gain.setValueAtTime(0, at);
+    gain.gain.linearRampToValueAtTime(0.12, at + length * 0.3);
+    gain.gain.linearRampToValueAtTime(0, at + length);
+    oscillator.connect(soften);
+    soften.connect(gain);
+    gain.connect(master);
+    oscillator.start(at);
+    oscillator.stop(at + length + 0.05);
+  }
 }

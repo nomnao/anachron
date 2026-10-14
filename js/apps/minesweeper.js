@@ -8,6 +8,7 @@
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
+import { playExplosion, playFanfare } from '../system/sound.js';
 
 const LEVELS = {
   beginner:     { label: 'Beginner',     rows: 9,  cols: 9,  mines: 10 },
@@ -367,6 +368,8 @@ function toggleFlag(game, index) {
 function endGame(game, won) {
   game.state = won ? 'won' : 'lost';
   stopTimer(game);
+  if (won) playFanfare();
+  else playExplosion();
 
   // Winning flags every mine for you
   if (won) {
@@ -482,6 +485,8 @@ async function checkBestTime(game) {
     title: 'Minesweeper',
     message: `You have the fastest time for ${level.label.toLowerCase()} level: ${plural(game.seconds)}!`,
     cancelLabel: null,
+    // The winning fanfare has just played
+    quiet: true,
   });
   game.root.focus({ preventScroll: true });
 }

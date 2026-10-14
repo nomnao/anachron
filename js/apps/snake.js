@@ -13,6 +13,7 @@
 
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
+import { playBlip, playGameOver, playFanfare } from '../system/sound.js';
 
 const STORAGE_KEY = 'anachron.snake';
 
@@ -262,6 +263,7 @@ function step(game) {
 
   if (game.apple && head.x === game.apple.x && head.y === game.apple.y) {
     game.apples++;
+    playBlip();
     game.score += SPEEDS[game.speedId].points;
     game.growing += 2;
     placeApple(game);
@@ -279,6 +281,8 @@ function step(game) {
 async function gameOver(game, filledBoard = false) {
   game.state = 'over';
   stopTimer(game);
+  if (filledBoard) playFanfare();
+  else playGameOver();
   game.turns = [];
   render(game);
 
@@ -298,6 +302,8 @@ async function gameOver(game, filledBoard = false) {
     await showConfirmDialog(game.root, {
       title: 'Snake',
       message: `A new best score for ${speed.label.toLowerCase()} speed: ${game.score}!`,
+      // The game-over sound has just played
+      quiet: true,
       cancelLabel: null,
     });
     game.root.focus({ preventScroll: true });

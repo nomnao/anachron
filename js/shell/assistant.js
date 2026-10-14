@@ -11,6 +11,7 @@
 //   - Right-click Coo to hide it; the Start menu brings it back.
 
 import { showContextMenu } from './context-menu.js';
+import { playCoo } from '../system/sound.js';
 
 const STORAGE_KEY = 'anachron.assistant';
 
@@ -234,6 +235,7 @@ function say(text, choices = [{ label: 'OK' }]) {
   balloon.hidden = false;
   placeBalloon();
   wiggle('is-hopping');
+  playCoo();
 
   clearTimeout(coo.balloonTimer);
   coo.balloonTimer = setTimeout(closeBalloon, BALLOON_MS);

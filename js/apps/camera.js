@@ -12,6 +12,7 @@ import {
   FRAME_WIDTH, FRAME_HEIGHT, openWebcam, explainWebcamError, drawMirroredFrame, stopStream,
 } from '../shell/webcam.js';
 import { fileExists, writeFile } from '../system/fs.js';
+import { playShutter } from '../system/sound.js';
 
 // What to call the save shortcut in messages
 const SAVE_KEYS = /Mac|iPhone|iPad/.test(navigator.platform) ? 'Cmd+S' : 'Ctrl+S';
@@ -151,6 +152,7 @@ function takePicture(camera) {
   camera.photo = camera.canvas.toDataURL('image/png');
   camera.saved = false;
 
+  playShutter();
   flash(camera);
   showButtons(camera, ['retake', 'save']);
   setStatus(camera, `Press ${SAVE_KEYS} to save this picture`);

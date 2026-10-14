@@ -14,6 +14,7 @@
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
 import { isDoubleClick } from '../shell/double-click.js';
+import { playCard, playFanfare } from '../system/sound.js';
 
 const STORAGE_KEY = 'anachron.solitaire';
 
@@ -311,6 +312,7 @@ function drawFromStock(game) {
     for (let i = 0; i < count; i++) waste.push({ id: stock.pop().id, up: true });
     game.wasteFan = count;
   }
+  playCard();
   render(game);
 }
 
@@ -342,6 +344,7 @@ function moveCards(game, from, count, to) {
   const source = game.piles[from];
   const cards = source.splice(source.length - count, count);
   game.piles[to].push(...cards);
+  playCard();
 
   const toFoundation = to.startsWith('foundation');
   if (from === 'waste') {
@@ -724,6 +727,7 @@ function checkWin(game) {
   }
 
   render(game);
+  playFanfare();
   startCascade(game);
 }
 

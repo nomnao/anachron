@@ -9,6 +9,7 @@ import { fileTypeOf } from '../app.js';
 import { formatSize } from './files.js';
 import { setUpMenuBar } from '../shell/menus.js';
 import { showConfirmDialog } from '../shell/dialogs.js';
+import { playCrumple } from '../system/sound.js';
 import { showContextMenu } from '../shell/context-menu.js';
 import { confirmEmptyRecycleBin } from '../shell/recycle.js';
 import { fileEntry, sortByEntry, setUpColumnSorting } from '../shell/sort-files.js';
@@ -257,7 +258,10 @@ async function deleteSelected(bin) {
     cancelLabel: 'No',
   });
 
-  if (confirmed) deleteRecycled(item.id);
+  if (confirmed) {
+    deleteRecycled(item.id);
+    playCrumple();
+  }
   bin.root.focus({ preventScroll: true });
 }
 
