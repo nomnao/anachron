@@ -445,9 +445,14 @@ export function playGameOver() {
   beep(frequency('C3'), 0.5, 0.4, 0.05);
 }
 
-// A card is turned over or put down: a soft flick
+// A card is turned over or put down: a soft flick. Several cards
+// moving at once (Solitaire's right-click) make one flick, not a
+// pile of them on top of each other.
+let lastCardAt = -1;
 export function playCard() {
   if (!ready()) return;
+  if (context.currentTime - lastCardAt < 0.05) return;
+  lastCardAt = context.currentTime;
   noiseBurst(0, 0.04, { loudness: 0.12, type: 'highpass', from: 3000 });
 }
 
